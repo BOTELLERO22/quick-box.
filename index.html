@@ -81,7 +81,6 @@
       box-shadow: 0 0 25px rgba(0, 240, 255, 0.25);
     }
 
-    /* Safe area padding for mobile notches */
     .pb-safe {
       padding-bottom: env(safe-area-inset-bottom, 1rem);
     }
@@ -93,10 +92,8 @@
   <div id="landing-portal" class="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-3 sm:p-6 transition-all duration-500 overflow-y-auto">
 
     <div class="max-w-md w-full bg-black rounded-3xl p-5 sm:p-8 shadow-2xl text-center space-y-6 border border-zinc-800 neon-border-pink relative overflow-hidden my-auto">
-      <!-- Decorative Accent Line -->
       <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#ff007f] via-[#00f0ff] to-[#00ff87]"></div>
 
-      <!-- Title & Subtitle -->
       <div class="space-y-2 sm:space-y-3 pt-2 relative z-10">
         <h1 class="text-3xl xs:text-4xl sm:text-5xl font-black font-sans tracking-tight text-white drop-shadow-lg">
           QUICK<span class="text-[#ff007f]">BOX</span>
@@ -109,7 +106,6 @@
         </p>
       </div>
 
-      <!-- Role Selection Buttons -->
       <div class="space-y-2.5 sm:space-y-3 pt-2 relative z-10">
         <button onclick="enterPortalAs('store')" class="w-full bg-[#ff007f] hover:bg-pink-600 active:scale-95 text-white font-bold py-3.5 px-4 rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-pink-500/25 transition-all flex items-center justify-center gap-3">
           <i class="fa-solid fa-store text-base"></i> Ingresar como Comercio
@@ -142,7 +138,6 @@
         </div>
       </div>
 
-      <!-- Header actions area -->
       <div class="flex items-center gap-2">
         <button onclick="returnToPortal()" class="text-xs bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-zinc-300 px-3 py-2 rounded-xl border border-zinc-800 flex items-center gap-2 transition-all">
           <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Cambiar Perfil</span>
@@ -155,7 +150,6 @@
   <!-- AUTHENTICATION MODAL -->
   <div id="auth-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
     <div class="bg-black border border-zinc-800 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative neon-border-pink">
-      <!-- Back Arrow Button -->
       <div class="absolute top-4 left-4 flex items-center gap-2">
         <button onclick="backToPortalFromAuth()" class="text-zinc-400 hover:text-white p-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs flex items-center gap-1.5 transition-all">
           <i class="fa-solid fa-arrow-left"></i> Volver
@@ -197,8 +191,6 @@
 
     <!-- STORE VIEW -->
     <section id="view-store" class="space-y-4 sm:space-y-6">
-      
-      <!-- Session Bar -->
       <div class="bg-black border border-zinc-800 rounded-2xl p-3.5 sm:px-6 sm:py-4 flex flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3 w-full">
           <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-pink-950/60 border border-pink-500/40 flex items-center justify-center text-[#ff007f] text-base sm:text-lg flex-shrink-0">
@@ -225,8 +217,6 @@
           </div>
 
           <form id="form-create-order" onsubmit="submitNewOrder(event)" class="space-y-3.5">
-            
-            <!-- Address Destination -->
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
                 <i class="fa-solid fa-flag-checkered text-[#ff007f] mr-1"></i> Dirección de Entrega (Destino)
@@ -239,7 +229,6 @@
               </div>
             </div>
 
-            <!-- Share Google Maps Pin / Location Link -->
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
                 <i class="fa-solid fa-share-nodes text-[#00ff87] mr-1"></i> Compartir Ubicación Google Maps
@@ -247,7 +236,6 @@
               <input type="url" id="order-maps-link" placeholder="Pegar enlace o Pin (https://maps.app.goo.gl/...)" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00ff87]">
             </div>
 
-            <!-- Client Contact & Phone -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Cliente Recibe</label>
@@ -259,7 +247,6 @@
               </div>
             </div>
 
-            <!-- Tariff Tier Selector -->
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
                 <i class="fa-solid fa-route text-[#00f0ff] mr-1"></i> Rango de Envío
@@ -271,7 +258,6 @@
               </select>
             </div>
 
-            <!-- Demora de Pedido / Preparación -->
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
                 <i class="fa-solid fa-clock text-amber-400 mr-1"></i> Demora de Pedido / Preparación
@@ -286,7 +272,6 @@
               </select>
             </div>
 
-            <!-- Payment Method Selector -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
@@ -328,9 +313,7 @@
             </div>
           </div>
 
-          <div id="store-orders-container" class="space-y-3 min-h-[200px] sm:min-h-[250px]">
-            <!-- Dynamic Order Cards -->
-          </div>
+          <div id="store-orders-container" class="space-y-3 min-h-[200px] sm:min-h-[250px]"></div>
         </div>
 
       </div>
@@ -338,8 +321,6 @@
 
     <!-- DRIVER VIEW -->
     <section id="view-driver" class="hidden space-y-4 sm:space-y-6">
-      
-      <!-- Driver Header Info with Refresh Button Exclusively for Driver -->
       <div class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div class="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
           <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-cyan-950/60 border border-cyan-500/40 flex items-center justify-center text-[#00f0ff] text-xl sm:text-2xl font-black flex-shrink-0">
@@ -355,7 +336,6 @@
         </div>
 
         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <!-- Refresh Button (Only Icon) -->
           <button onclick="refreshApplication()" class="bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-[#00f0ff] border border-zinc-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center transition-all shrink-0" title="Actualizar Datos">
             <i class="fa-solid fa-rotate text-base"></i>
           </button>
@@ -365,7 +345,6 @@
         </div>
       </div>
 
-      <!-- Driver Tabs (Radar vs My Orders Monitor) -->
       <div class="flex border-b border-zinc-800 gap-1 sm:gap-2 overflow-x-auto pb-1">
         <button onclick="switchDriverTab('radar')" id="driver-tab-radar" class="px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#00f0ff] border-b-2 border-[#00f0ff] flex items-center gap-1.5 whitespace-nowrap">
           <i class="fa-solid fa-satellite-dish"></i> Radar
@@ -378,18 +357,13 @@
         </button>
       </div>
 
-      <!-- Radar View Content -->
       <div id="driver-view-radar" class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
         <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
           <i class="fa-solid fa-satellite-dish text-[#ff007f]"></i> RADAR DE SOLICITUDES DISPONIBLES
         </h3>
-
-        <div id="driver-radar-feed" class="space-y-3">
-          <!-- Dynamic Requests -->
-        </div>
+        <div id="driver-radar-feed" class="space-y-3"></div>
       </div>
 
-      <!-- Personal Driver Monitor View Content -->
       <div id="driver-view-my-orders" class="hidden bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
         <div class="flex flex-row items-center justify-between border-b border-zinc-900 pb-3 gap-2">
           <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
@@ -401,33 +375,22 @@
             </button>
           </div>
         </div>
-
-        <div id="driver-my-orders-feed" class="space-y-3">
-          <!-- Dynamic Assigned Orders -->
-        </div>
+        <div id="driver-my-orders-feed" class="space-y-3"></div>
       </div>
 
-      <!-- Colleagues Active View Content -->
       <div id="driver-view-colleagues" class="hidden bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
           <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
             <i class="fa-solid fa-users text-[#00ff87]"></i> COMPAÑEROS ACTIVOS
           </h3>
-          <span class="text-[10px] sm:text-xs bg-emerald-950/60 text-[#00ff87] px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-bold">
-            En línea
-          </span>
+          <span class="text-[10px] sm:text-xs bg-emerald-950/60 text-[#00ff87] px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-bold">En línea</span>
         </div>
-
-        <div id="driver-colleagues-feed" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <!-- Dynamic colleagues list -->
-        </div>
+        <div id="driver-colleagues-feed" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
       </div>
     </section>
 
     <!-- ADMIN VIEW -->
     <section id="view-admin" class="hidden space-y-4 sm:space-y-6">
-
-      <!-- Manage Stores & Drivers Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         
         <!-- Add / Manage Local (Store) -->
@@ -457,9 +420,7 @@
 
           <div class="pt-2">
             <div class="text-xs font-bold text-zinc-400 mb-2">Locales Registrados:</div>
-            <div id="stores-list-container" class="space-y-2 max-h-36 overflow-y-auto">
-              <!-- Dynamic stores list -->
-            </div>
+            <div id="stores-list-container" class="space-y-2 max-h-36 overflow-y-auto"></div>
           </div>
         </div>
 
@@ -476,7 +437,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div>
                 <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">Nombre</label>
-                <input type="text" id="new-driver-name" required placeholder="Ej: Marcos Pérez" class="w-full bg-black border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+                <input type="text" id="new-driver-name" required placeholder="Ej: MATI" class="w-full bg-black border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
               </div>
               <div>
                 <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">WhatsApp</label>
@@ -494,9 +455,7 @@
 
           <div class="pt-2">
             <div class="text-xs font-bold text-zinc-400 mb-2">Repartidores Registrados:</div>
-            <div id="drivers-list-container" class="space-y-2 max-h-36 overflow-y-auto">
-              <!-- Dynamic drivers list -->
-            </div>
+            <div id="drivers-list-container" class="space-y-2 max-h-36 overflow-y-auto"></div>
           </div>
         </div>
 
@@ -532,9 +491,7 @@
           </div>
         </div>
       </div>
-
     </section>
-
   </main>
 
   <!-- FOOTER -->
@@ -554,52 +511,57 @@
   <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-[90vw] sm:max-w-md"></div>
 
   <script>
-    // System State Variables
     let currentRole = null;
     let pendingRole = null;
     let currentDriverTab = 'radar';
     let driverDutyStatus = true;
 
-    let tariffs = {
-      tier1: 3000,
-      tier2: 4500,
-      tier3: 6500
-    };
+    // Load persisted tariffs or defaults
+    let savedTariffs = JSON.parse(localStorage.getItem('qb_tariffs'));
+    let tariffs = savedTariffs || { tier1: 3000, tier2: 4500, tier3: 6500 };
 
-    // Starts empty from scratch
-    let stores = [];
-    let drivers = [];
+    // Default example stores & drivers (with LocalStorage fallback)
+    const initialStores = [
+      { id: 's1', name: 'Burger House', pass: 'b123' },
+      { id: 's2', name: 'Pizzería Centro', pass: 'p123' }
+    ];
+
+    const initialDrivers = [
+      { id: 'd1', name: 'MATI', phone: '2615949456', pass: 'M123', active: true },
+      { id: 'd2', name: 'Lucas Cadete', phone: '2610001122', pass: 'L123', active: true }
+    ];
+
+    let stores = JSON.parse(localStorage.getItem('qb_stores')) || initialStores;
+    let drivers = JSON.parse(localStorage.getItem('qb_drivers')) || initialDrivers;
+    let orders = JSON.parse(localStorage.getItem('qb_orders')) || [];
 
     let currentSessionUser = null;
 
-    // Monitor starts empty (0 active orders)
-    let orders = [];
+    function saveStateToLocalStorage() {
+      localStorage.setItem('qb_stores', JSON.stringify(stores));
+      localStorage.setItem('qb_drivers', JSON.stringify(drivers));
+      localStorage.setItem('qb_orders', JSON.stringify(orders));
+      localStorage.setItem('qb_tariffs', JSON.stringify(tariffs));
+    }
 
-    // Web Audio Synthesizer for Driver Order Alert (Meep-Meep / Roadrunner Tone)
     function playDriverBeep() {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
         const ctx = new AudioCtx();
-
         const notes = [
           { freq: 880, duration: 0.08, delay: 0 },
           { freq: 1318.51, duration: 0.12, delay: 0.1 }
         ];
-
         notes.forEach(note => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
-
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(note.freq, ctx.currentTime + note.delay);
-
           gain.gain.setValueAtTime(0.25, ctx.currentTime + note.delay);
           gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + note.delay + note.duration);
-
           osc.connect(gain);
           gain.connect(ctx.destination);
-
           osc.start(ctx.currentTime + note.delay);
           osc.stop(ctx.currentTime + note.delay + note.duration);
         });
@@ -617,11 +579,9 @@
       const passInput = document.getElementById('auth-password-input');
       const eyeIcon = document.getElementById('pass-eye-icon');
 
-      // Always reset password input to type="password" on open to mask input characters
       passInput.value = '';
       passInput.type = 'password';
       if (eyeIcon) eyeIcon.className = 'fa-solid fa-eye-slash';
-
       document.getElementById('auth-error').classList.add('hidden');
 
       if (role === 'admin') {
@@ -667,6 +627,7 @@
           document.getElementById('landing-portal').classList.add('hidden');
           showToast('Bienvenido Administrador', 'success');
           renderAdminLists();
+          loadTariffsIntoInputs();
         } else {
           errorMsg.innerText = 'Contraseña de admin incorrecta';
           errorMsg.classList.remove('hidden');
@@ -728,11 +689,6 @@
       }
     }
 
-    function updateCalculatedTariff() {
-      const tier = document.getElementById('order-tier-select').value;
-      return tariffs[tier] || 3000;
-    }
-
     function submitNewOrder(e) {
       e.preventDefault();
       const dest = document.getElementById('order-destination').value.trim();
@@ -764,8 +720,7 @@
       };
 
       orders.unshift(newOrder);
-
-      // Trigger tone notification exclusively for active drivers
+      saveStateToLocalStorage();
       playDriverBeep();
 
       showToast(`¡Nuevo pedido en camino! (${newOrder.id})`, 'success');
@@ -792,7 +747,7 @@
       const container = document.getElementById('store-orders-container');
       const activeCount = document.getElementById('active-orders-count');
       
-      const storeOrders = currentSessionUser ? orders.filter(o => o.storeId === currentSessionUser.id) : orders;
+      const storeOrders = currentSessionUser && currentRole === 'store' ? orders.filter(o => o.storeId === currentSessionUser.id) : orders;
       activeCount.innerText = storeOrders.filter(o => o.status !== 'delivered').length;
 
       if (storeOrders.length === 0) {
@@ -831,6 +786,7 @@
 
     function clearAllOrders() {
       orders = [];
+      saveStateToLocalStorage();
       renderStoreOrders();
       renderDriverFeeds();
       showToast('Todos los pedidos eliminados', 'info');
@@ -849,25 +805,6 @@
       renderDriverFeeds();
     }
 
-    function toggleDriverDuty() {
-      driverDutyStatus = !driverDutyStatus;
-      const badge = document.getElementById('driver-duty-badge');
-      const btn = document.getElementById('btn-driver-duty');
-      if (driverDutyStatus) {
-        badge.innerText = 'Online';
-        badge.className = 'text-[10px] sm:text-xs bg-emerald-950 text-[#00ff87] border border-emerald-800/60 px-2.5 py-0.5 rounded-full font-semibold';
-        btn.innerHTML = '<i class="fa-solid fa-circle text-[8px]"></i> <span class="whitespace-nowrap">En Servicio</span>';
-        btn.className = 'flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold bg-[#00ff87]/20 text-[#00ff87] border border-[#00ff87]/40 flex items-center justify-center gap-2';
-        showToast('Estás en línea para recibir pedidos', 'success');
-      } else {
-        badge.innerText = 'Offline';
-        badge.className = 'text-[10px] sm:text-xs bg-rose-950 text-rose-400 border border-rose-800/60 px-2.5 py-0.5 rounded-full font-semibold';
-        btn.innerHTML = '<i class="fa-solid fa-circle text-[8px]"></i> <span class="whitespace-nowrap">Fuera de Servicio</span>';
-        btn.className = 'flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40 flex items-center justify-center gap-2';
-        showToast('Te has puesto fuera de servicio', 'info');
-      }
-    }
-
     function acceptOrder(orderId) {
       if (!currentSessionUser) return;
       const order = orders.find(o => o.id === orderId);
@@ -875,6 +812,7 @@
         order.status = 'assigned';
         order.driverId = currentSessionUser.id;
         order.driverName = currentSessionUser.name;
+        saveStateToLocalStorage();
         showToast(`Pedido ${order.id} asignado a tu monitor`, 'success');
         renderDriverFeeds();
         renderStoreOrders();
@@ -885,6 +823,7 @@
       const order = orders.find(o => o.id === orderId);
       if (order) {
         order.status = 'delivered';
+        saveStateToLocalStorage();
         showToast(`Pedido ${order.id} finalizado`, 'success');
         renderDriverFeeds();
         renderStoreOrders();
@@ -894,6 +833,7 @@
     function clearDriverPersonalOrders() {
       if (!currentSessionUser) return;
       orders = orders.filter(o => o.driverId !== currentSessionUser.id);
+      saveStateToLocalStorage();
       renderDriverFeeds();
       renderStoreOrders();
       showToast('Monitor personal limpiado', 'info');
@@ -905,7 +845,6 @@
       const countBadge = document.getElementById('driver-my-orders-count-badge');
       const colleaguesFeed = document.getElementById('driver-colleagues-feed');
 
-      // 1. Radar Feed
       const pendingOrders = orders.filter(o => o.status === 'pending');
       if (pendingOrders.length === 0) {
         radarFeed.innerHTML = `
@@ -932,7 +871,6 @@
         `).join('');
       }
 
-      // 2. Personal Monitor
       const myAssigned = currentSessionUser ? orders.filter(o => o.driverId === currentSessionUser.id && o.status !== 'delivered') : [];
       countBadge.innerText = myAssigned.length;
 
@@ -964,7 +902,6 @@
         `).join('');
       }
 
-      // 3. Active Colleagues
       if (drivers.length === 0) {
         colleaguesFeed.innerHTML = `<div class="text-xs text-zinc-600 text-center py-4 col-span-1 sm:col-span-2">No hay repartidores registrados.</div>`;
       } else {
@@ -979,9 +916,7 @@
                 <div class="text-[10px] text-zinc-500">WA: ${d.phone}</div>
               </div>
             </div>
-            <span class="text-[10px] bg-emerald-950 text-[#00ff87] border border-emerald-800/60 px-2 py-0.5 rounded-full font-bold">
-              En servicio
-            </span>
+            <span class="text-[10px] bg-emerald-950 text-[#00ff87] border border-emerald-800/60 px-2 py-0.5 rounded-full font-bold">En servicio</span>
           </div>
         `).join('');
       }
@@ -993,10 +928,11 @@
       const pass = document.getElementById('new-store-pass').value.trim();
 
       if (name && pass) {
-        stores.push({ id: 's' + (stores.length + 1), name: name, pass: pass });
+        stores.push({ id: 's' + Date.now(), name: name, pass: pass });
+        saveStateToLocalStorage();
         document.getElementById('new-store-name').value = '';
         document.getElementById('new-store-pass').value = '';
-        showToast(`Comercio ${name} registrado`, 'success');
+        showToast(`Comercio ${name} registrado y guardado`, 'success');
         renderAdminLists();
       }
     }
@@ -1008,11 +944,12 @@
       const pass = document.getElementById('new-driver-pass').value.trim();
 
       if (name && phone && pass) {
-        drivers.push({ id: 'd' + (drivers.length + 1), name: name, phone: phone, pass: pass, active: true });
+        drivers.push({ id: 'd' + Date.now(), name: name, phone: phone, pass: pass, active: true });
+        saveStateToLocalStorage();
         document.getElementById('new-driver-name').value = '';
         document.getElementById('new-driver-phone').value = '';
         document.getElementById('new-driver-pass').value = '';
-        showToast(`Repartidor ${name} registrado`, 'success');
+        showToast(`Repartidor ${name} registrado y guardado`, 'success');
         renderAdminLists();
       }
     }
@@ -1057,6 +994,7 @@
     function deleteStore(storeId) {
       const storeToDelete = stores.find(s => s.id === storeId);
       stores = stores.filter(s => s.id !== storeId);
+      saveStateToLocalStorage();
       showToast(`Comercio ${storeToDelete ? storeToDelete.name : ''} eliminado`, 'info');
       renderAdminLists();
     }
@@ -1064,6 +1002,7 @@
     function deleteDriver(driverId) {
       const driverToDelete = drivers.find(d => d.id === driverId);
       drivers = drivers.filter(d => d.id !== driverId);
+      saveStateToLocalStorage();
       showToast(`Repartidor ${driverToDelete ? driverToDelete.name : ''} eliminado`, 'info');
       renderAdminLists();
     }
@@ -1072,7 +1011,14 @@
       tariffs.tier1 = Number(document.getElementById('rate-0-3').value) || 3000;
       tariffs.tier2 = Number(document.getElementById('rate-3-6').value) || 4500;
       tariffs.tier3 = Number(document.getElementById('rate-6-9').value) || 6500;
+      saveStateToLocalStorage();
       showToast('Tarifas de envío actualizadas', 'success');
+    }
+
+    function loadTariffsIntoInputs() {
+      if (document.getElementById('rate-0-3')) document.getElementById('rate-0-3').value = tariffs.tier1;
+      if (document.getElementById('rate-3-6')) document.getElementById('rate-3-6').value = tariffs.tier2;
+      if (document.getElementById('rate-6-9')) document.getElementById('rate-6-9').value = tariffs.tier3;
     }
 
     function refreshApplication() {
@@ -1084,18 +1030,13 @@
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
-      
       const bgColor = type === 'success' ? 'bg-emerald-950 border-emerald-500/50 text-[#00ff87]' : type === 'error' ? 'bg-rose-950 border-rose-500/50 text-rose-300' : 'bg-cyan-950 border-cyan-500/50 text-[#00f0ff]';
       
       toast.className = `${bgColor} border px-3.5 py-2.5 rounded-2xl text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 pointer-events-auto transition-all transform translate-y-2 opacity-0`;
       toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i> <span>${message}</span>`;
       
       container.appendChild(toast);
-
-      setTimeout(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      }, 10);
-
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
       setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-2');
         setTimeout(() => toast.remove(), 300);
@@ -1110,6 +1051,7 @@
 
     window.onload = function() {
       renderStoreOrders();
+      loadTariffsIntoInputs();
     };
   </script>
 </body>
