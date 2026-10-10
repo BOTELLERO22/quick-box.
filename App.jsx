@@ -1,820 +1,1058 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Store, 
-  Bike, 
-  PlusCircle, 
-  CheckCircle2, 
-  Clock, 
-  MapPin, 
-  Phone, 
-  Package, 
-  DollarSign, 
-  User, 
-  Navigation, 
-  Bell, 
-  Volume2, 
-  VolumeX, 
-  Split, 
-  X, 
-  Sparkles, 
-  RefreshCw, 
-  ShoppingBag,
-  Zap,
-  Check,
-  Eye,
-  ChevronRight
-} from 'lucide-react';
-
-const QuickBoxOwlIcon = ({ className = "w-7 h-7" }) => (
-  <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Stylized Neon Owl Face */}
-    <path 
-      d="M15 20 C 30 25, 40 40, 50 48 C 60 40, 70 25, 85 20 C 80 38, 88 45, 95 55 C 80 62, 75 80, 50 92 C 25 80, 20 62, 5 55 C 12 45, 20 38, 15 20 Z" 
-      stroke="#f43f5e" 
-      strokeWidth="5" 
-      fill="#09090b"
-    />
-    {/* Eyes */}
-    <circle cx="35" cy="50" r="12" stroke="#f43f5e" strokeWidth="4" fill="#000" />
-    <circle cx="65" cy="50" r="12" stroke="#f43f5e" strokeWidth="4" fill="#000" />
-    <circle cx="35" cy="50" r="4" fill="#fff" />
-    <circle cx="65" cy="50" r="4" fill="#fff" />
-    {/* Sharp Beak */}
-    <path d="M50 50 L44 65 L50 72 L56 65 Z" fill="#f43f5e" />
-    {/* Brow outline */}
-    <path d="M22 36 L42 46 L50 48 L58 46 L78 36" stroke="#f43f5e" strokeWidth="4" strokeLinecap="round" />
-  </svg>
-);
-
-const INITIAL_ORDERS = [
-  {
-    id: 'QB-8921',
-    storeName: 'Pizzeria Don Luigi',
-    storeAddress: 'Av. Belgrano 1240',
-    customerName: 'Carolina Rossi',
-    customerAddress: 'Calle San Martín 458, 3B',
-    customerPhone: '+54 9 261 455-8910',
-    items: '1x Pizza Muzzarella, 1x Empanadas x6',
-    price: 12500,
-    deliveryFee: 1800,
-    status: 'pending',
-    assignedDriver: null,
-    createdAt: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
-    logs: [{ time: new Date(Date.now() - 1000 * 60 * 8).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), text: 'Pedido publicado en QUICK BOX' }]
-  },
-  {
-    id: 'QB-8920',
-    storeName: 'Hamburguesería Urban',
-    storeAddress: 'Calle Aristides 320',
-    customerName: 'Lucas Méndez',
-    customerAddress: 'Calle Las Heras 1120',
-    customerPhone: '+54 9 261 512-3344',
-    items: '2x Doble Bacon Burger + Papas Grandes',
-    price: 18400,
-    deliveryFee: 2200,
-    status: 'picked_up',
-    assignedDriver: { id: 'DRV-01', name: 'Marcos R.', phone: '+54 9 261 998-1122', vehicle: 'Moto Honda Wave' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-    logs: [
-      { time: '19:15', text: 'Pedido creado' },
-      { time: '19:18', text: 'Tomado por Marcos R.' },
-      { time: '19:25', text: 'Retirado del local' }
-    ]
-  }
-];
-
-const playNotificationSound = (type = 'new') => {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    if (type === 'new') {
-      osc.frequency.setValueAtTime(600, ctx.currentTime);
-      osc.frequency.setValueAtTime(900, ctx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.35);
-    } else if (type === 'accept') {
-      osc.frequency.setValueAtTime(520, ctx.currentTime);
-      osc.frequency.setValueAtTime(700, ctx.currentTime + 0.08);
-      osc.frequency.setValueAtTime(950, ctx.currentTime + 0.16);
-      gain.gain.setValueAtTime(0.25, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.4);
-    } else if (type === 'delivered') {
-      osc.frequency.setValueAtTime(700, ctx.currentTime);
-      osc.frequency.setValueAtTime(1050, ctx.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.25, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.5);
-    }
-  } catch (e) {
-    // Silent fallback
-  }
-};
-
-export default function App() {
-  const [orders, setOrders] = useState(INITIAL_ORDERS);
-  const [viewMode, setViewMode] = useState('split');
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [toasts, setToasts] = useState([]);
-
-  const addToast = (message, type = 'info') => {
-    const id = Date.now();
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4000);
-  };
-
-  const triggerAudio = (soundType) => {
-    if (soundEnabled) {
-      playNotificationSound(soundType);
-    }
-  };
-
-  const handleCreateOrder = (newOrderData) => {
-    const newOrder = {
-      ...newOrderData,
-      id: `QB-${Math.floor(1000 + Math.random() * 9000)}`,
-      status: 'pending',
-      assignedDriver: null,
-      createdAt: new Date().toISOString(),
-      logs: [{ time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), text: 'Pedido publicado en la red' }]
-    };
-
-    setOrders(prev => [newOrder, ...prev]);
-    addToast(`¡Nuevo pedido ${newOrder.id} creado!`, 'success');
-    triggerAudio('new');
-  };
-
-  const handleAcceptOrder = (orderId, driverInfo) => {
-    setOrders(prev => prev.map(ord => {
-      if (ord.id === orderId && ord.status === 'pending') {
-        const updatedLogs = [
-          ...ord.logs,
-          { time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), text: `Aceptado por ${driverInfo.name}` }
-        ];
-        return {
-          ...ord,
-          status: 'assigned',
-          assignedDriver: driverInfo,
-          logs: updatedLogs
-        };
-      }
-      return ord;
-    }));
-
-    addToast(`Pedido ${orderId} aceptado por ${driverInfo.name}`, 'info');
-    triggerAudio('accept');
-  };
-
-  const handleUpdateOrderStatus = (orderId, newStatus, statusText) => {
-    setOrders(prev => prev.map(ord => {
-      if (ord.id === orderId) {
-        const updatedLogs = [
-          ...ord.logs,
-          { time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), text: statusText }
-        ];
-        return {
-          ...ord,
-          status: newStatus,
-          logs: updatedLogs
-        };
-      }
-      return ord;
-    }));
-
-    if (newStatus === 'delivered') {
-      addToast(`Pedido ${orderId} entregado con éxito`, 'success');
-      triggerAudio('delivered');
-    } else {
-      addToast(`Estado de ${orderId}: ${statusText}`, 'info');
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans selection:bg-rose-600 selection:text-white antialiased relative overflow-x-hidden">
-      {/* Background Neon Pink Glow Orbs */}
-      <div className="fixed -top-32 -left-32 w-96 h-96 bg-rose-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="fixed -bottom-32 -right-32 w-96 h-96 bg-pink-600/15 rounded-full blur-[120px] pointer-events-none"></div>
-
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-zinc-950/90 backdrop-blur-xl border-b border-rose-950/50 px-4 py-3 shadow-[0_4px_30px_rgba(244,63,94,0.15)]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          
-          {/* Logo Branding - QUICK BOX Style */}
-          <div className="flex items-center gap-3">
-            <div className="bg-black p-2 rounded-2xl border-2 border-rose-600 shadow-[0_0_15px_rgba(244,63,94,0.6)] flex items-center justify-center">
-              <QuickBoxOwlIcon className="w-8 h-8" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black italic tracking-wider text-white uppercase drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]">
-                  QUICK <span className="text-rose-500 not-italic">BOX</span>
-                </h1>
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold bg-rose-950/60 text-rose-400 border border-rose-600/40 px-2.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.3)]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
-                  LIVE SYNC
-                </span>
-              </div>
-              <p className="text-[11px] text-zinc-400 font-medium tracking-wide">Plataforma Directa entre Locales y Delivery</p>
-            </div>
-          </div>
-
-          {/* Controls Bar */}
-          <div className="flex items-center gap-2 bg-zinc-900/90 p-1.5 rounded-2xl border border-rose-900/40 shadow-inner">
-            <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              title={soundEnabled ? "Desactivar audio" : "Activar audio"}
-              className={`p-2 rounded-xl transition-all ${
-                soundEnabled 
-                  ? 'bg-rose-950/80 text-rose-400 border border-rose-600/40 shadow-[0_0_8px_rgba(244,63,94,0.4)]' 
-                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'
-              }`}
-            >
-              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
-
-            <div className="h-4 w-px bg-zinc-800"></div>
-
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setViewMode('split')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black uppercase transition-all ${
-                  viewMode === 'split'
-                    ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(244,63,94,0.6)]'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
-                }`}
-              >
-                <Split className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Vista Dual</span>
-                <span className="md:hidden">Dual</span>
-              </button>
-
-              <button
-                onClick={() => setViewMode('store')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black uppercase transition-all ${
-                  viewMode === 'store'
-                    ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(244,63,94,0.6)]'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
-                }`}
-              >
-                <Store className="w-3.5 h-3.5" />
-                <span>Local</span>
-              </button>
-
-              <button
-                onClick={() => setViewMode('driver')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black uppercase transition-all ${
-                  viewMode === 'driver'
-                    ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(244,63,94,0.6)]'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
-                }`}
-              >
-                <Bike className="w-3.5 h-3.5" />
-                <span>Delivery</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Grid Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 transition-all duration-300">
-        <div className={`grid gap-6 ${
-          viewMode === 'split' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-3xl mx-auto'
-        }`}>
-          {(viewMode === 'split' || viewMode === 'store') && (
-            <StorePanel 
-              orders={orders}
-              onCreateOrder={handleCreateOrder}
-            />
-          )}
-
-          {(viewMode === 'split' || viewMode === 'driver') && (
-            <DriverPanel 
-              orders={orders}
-              onAcceptOrder={handleAcceptOrder}
-              onUpdateStatus={handleUpdateOrderStatus}
-            />
-          )}
-        </div>
-      </main>
-
-      {/* Floating Notifications */}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
-        {toasts.map(toast => (
-          <div
-            key={toast.id}
-            className={`pointer-events-auto p-4 rounded-2xl border shadow-2xl backdrop-blur-xl flex items-center gap-3 transition-all duration-300 ${
-              toast.type === 'success' 
-                ? 'bg-zinc-950/95 border-rose-500/80 text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.3)]' 
-                : 'bg-zinc-950/95 border-pink-500/60 text-pink-300 shadow-[0_0_20px_rgba(236,72,153,0.2)]'
-            }`}
-          >
-            <div className="p-2 rounded-xl bg-rose-600/20 text-rose-400 border border-rose-500/30">
-              <Bell className="w-4 h-4" />
-            </div>
-            <p className="text-xs font-extrabold leading-relaxed flex-1">{toast.message}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function StorePanel({ orders, onCreateOrder }) {
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    storeName: 'Pizzeria Don Luigi',
-    storeAddress: 'Av. Belgrano 1240',
-    customerName: '',
-    customerAddress: '',
-    customerPhone: '',
-    items: '',
-    price: '',
-    deliveryFee: '1800'
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.customerName || !formData.customerAddress || !formData.items || !formData.price) return;
-
-    onCreateOrder({
-      ...formData,
-      price: Number(formData.price),
-      deliveryFee: Number(formData.deliveryFee) || 1800
-    });
-
-    setFormData(prev => ({
-      ...prev,
-      customerName: '',
-      customerAddress: '',
-      customerPhone: '',
-      items: '',
-      price: ''
-    }));
-    setShowForm(false);
-  };
-
-  return (
-    <div className="bg-zinc-950/80 border-2 border-rose-900/30 rounded-3xl p-5 shadow-[0_0_30px_rgba(244,63,94,0.08)] backdrop-blur-md flex flex-col gap-5 relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-600 via-pink-500 to-rose-600"></div>
-
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-rose-950/60 border border-rose-600/40 text-rose-500 rounded-2xl shadow-[0_0_12px_rgba(244,63,94,0.3)]">
-            <Store className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-black text-white uppercase italic tracking-wider flex items-center gap-2">
-              Panel del Local
-              <span className="text-[10px] font-extrabold not-italic px-2.5 py-0.5 rounded-full bg-rose-950/80 text-rose-400 border border-rose-600/40">
-                Pizzeria Don Luigi
-              </span>
-            </h2>
-            <p className="text-xs text-zinc-400">Emite y realiza seguimiento de envíos QUICK BOX</p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className={`px-4 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-1.5 transition-all shadow-lg ${
-            showForm
-              ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
-              : 'bg-rose-600 hover:bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.5)]'
-          }`}
-        >
-          {showForm ? <><X className="w-4 h-4" /> Cancelar</> : <><PlusCircle className="w-4 h-4" /> Nuevo Pedido</>}
-        </button>
-      </div>
-
-      {/* Form */}
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-zinc-900/90 border border-rose-600/30 rounded-2xl p-4 flex flex-col gap-3.5 shadow-2xl animate-in fade-in duration-200">
-          <div className="flex items-center gap-1.5 text-xs font-black text-rose-400 uppercase tracking-wider">
-            <Sparkles className="w-4 h-4 text-rose-500" /> Crear Envío Express
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-bold text-zinc-400 mb-1 uppercase">Cliente *</label>
-              <input
-                type="text"
-                required
-                placeholder="Nombre completo"
-                value={formData.customerName}
-                onChange={e => setFormData({ ...formData, customerName: e.target.value })}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-zinc-400 mb-1 uppercase">WhatsApp</label>
-              <input
-                type="text"
-                placeholder="+54 9 261..."
-                value={formData.customerPhone}
-                onChange={e => setFormData({ ...formData, customerPhone: e.target.value })}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-bold text-zinc-400 mb-1 uppercase">Dirección de Entrega *</label>
-            <input
-              type="text"
-              required
-              placeholder="Calle y altura, piso/depto"
-              value={formData.customerAddress}
-              onChange={e => setFormData({ ...formData, customerAddress: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-bold text-zinc-400 mb-1 uppercase">Detalle Pedido / Caja *</label>
-            <textarea
-              required
-              rows="2"
-              placeholder="Ej: 1x Pizza Muzzarella, 1x Gaseosa 1.5L"
-              value={formData.items}
-              onChange={e => setFormData({ ...formData, items: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 resize-none transition-all"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-bold text-zinc-400 mb-1 uppercase">Cobro al Cliente ($)</label>
-              <input
-                type="number"
-                required
-                placeholder="0.00"
-                value={formData.price}
-                onChange={e => setFormData({ ...formData, price: e.target.value })}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-zinc-400 mb-1 uppercase">Tarifa Envío ($)</label>
-              <input
-                type="number"
-                required
-                placeholder="1800"
-                value={formData.deliveryFee}
-                onChange={e => setFormData({ ...formData, deliveryFee: e.target.value })}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="mt-1 w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-xs shadow-[0_0_20px_rgba(244,63,94,0.5)] transition-all flex items-center justify-center gap-2 uppercase tracking-wide active:scale-[0.99]"
-          >
-            <PlusCircle className="w-4 h-4" /> Publicar Pedido QUICK BOX
-          </button>
-        </form>
-      )}
-
-      {/* Orders List */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-extrabold text-zinc-400 uppercase tracking-wider">Pedidos Emitidos ({orders.length})</span>
-          <span className="text-rose-500 text-[11px] font-bold">Red en tiempo real</span>
-        </div>
-
-        {orders.length === 0 ? (
-          <div className="text-center py-10 text-zinc-500 text-xs border border-dashed border-zinc-800 rounded-2xl">
-            No hay pedidos registrados.
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3 max-h-[520px] overflow-y-auto pr-1">
-            {orders.map(order => (
-              <StoreOrderCard key={order.id} order={order} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function StoreOrderCard({ order }) {
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'pending':
-        return (
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full animate-pulse">
-            <Clock className="w-3 h-3" /> Buscando repartidor
-          </span>
-        );
-      case 'assigned':
-        return (
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase bg-rose-500/10 text-rose-400 border border-rose-500/30 px-2.5 py-1 rounded-full">
-            <Bike className="w-3 h-3" /> Delivery asignado
-          </span>
-        );
-      case 'at_store':
-        return (
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase bg-pink-500/10 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full">
-            <Store className="w-3 h-3" /> En el local
-          </span>
-        );
-      case 'picked_up':
-        return (
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase bg-rose-500/10 text-rose-400 border border-rose-500/30 px-2.5 py-1 rounded-full">
-            <Navigation className="w-3 h-3" /> En viaje al cliente
-          </span>
-        );
-      case 'delivered':
-        return (
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-            <CheckCircle2 className="w-3 h-3" /> Entregado
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="bg-zinc-900/60 border border-zinc-800 hover:border-rose-900/60 rounded-2xl p-4 flex flex-col gap-3 transition-all">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-black text-rose-400">{order.id}</span>
-            <span className="text-[10px] text-zinc-500">
-              {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-            </span>
-          </div>
-          <p className="text-xs font-bold text-zinc-200 mt-0.5">{order.customerName}</p>
-        </div>
-        {getStatusBadge(order.status)}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-black/40 p-2.5 rounded-xl border border-zinc-800/80">
-        <div className="flex items-start gap-2">
-          <MapPin className="w-3.5 h-3.5 text-rose-400 mt-0.5 flex-shrink-0" />
-          <span className="text-zinc-300 text-[11px]">{order.customerAddress}</span>
-        </div>
-        <div className="flex items-start gap-2">
-          <Package className="w-3.5 h-3.5 text-zinc-400 mt-0.5 flex-shrink-0" />
-          <span className="text-zinc-300 text-[11px] line-clamp-2">{order.items}</span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between text-xs pt-1 border-t border-zinc-800">
-        <div className="flex items-center gap-3">
-          <span className="text-zinc-400 text-[11px]">Cobro: <strong className="text-white font-bold">${order.price.toLocaleString()}</strong></span>
-          <span className="text-zinc-700">|</span>
-          <span className="text-zinc-400 text-[11px]">Envío: <strong className="text-rose-400 font-bold">${order.deliveryFee.toLocaleString()}</strong></span>
-        </div>
-
-        {order.assignedDriver ? (
-          <div className="flex items-center gap-1.5 text-rose-300 bg-rose-950/40 px-2.5 py-0.5 rounded-lg border border-rose-600/30 text-[11px] font-medium">
-            <User className="w-3 h-3" />
-            <span>{order.assignedDriver.name}</span>
-          </div>
-        ) : (
-          <span className="text-[11px] text-zinc-500 italic">Esperando repartidor</span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function DriverPanel({ orders, onAcceptOrder, onUpdateStatus }) {
-  const [isOnline, setIsOnline] = useState(true);
-  const [driverProfile] = useState({
-    id: 'DRV-88',
-    name: 'Carlos Ruiz',
-    phone: '+54 9 261 411-9900',
-    vehicle: 'Moto Zanella 150'
-  });
-
-  const availableOrders = orders.filter(o => o.status === 'pending');
-  const activeOrder = orders.find(o => 
-    o.assignedDriver?.id === driverProfile.id && o.status !== 'delivered' && o.status !== 'cancelled'
-  );
+<!DOCTYPE html>
+<html lang="es" class="dark h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Quick Box Cadetería & Logística</title>
   
-  const completedOrders = orders.filter(o => 
-    o.assignedDriver?.id === driverProfile.id && o.status === 'delivered'
-  );
-  const totalEarnings = completedOrders.reduce((acc, curr) => acc + curr.deliveryFee, 0);
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          screens: {
+            'xs': '380px'
+          },
+          colors: {
+            brand: {
+              pink: '#ff007f',
+              cyan: '#00f0ff',
+              green: '#00ff87',
+              dark: '#000000',
+              card: '#0c0c0e',
+              border: '#1f1f23'
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
 
-  return (
-    <div className="bg-zinc-950/80 border-2 border-rose-900/30 rounded-3xl p-5 shadow-[0_0_30px_rgba(244,63,94,0.08)] backdrop-blur-md flex flex-col gap-5 relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-rose-600 to-pink-500"></div>
+  <style>
+    * {
+      touch-action: manipulation;
+      box-sizing: border-box;
+    }
 
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-rose-950/60 border border-rose-600/40 text-rose-500 rounded-2xl shadow-[0_0_12px_rgba(244,63,94,0.3)]">
-            <Bike className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-black text-white uppercase italic tracking-wider flex items-center gap-2">
-              Panel Delivery
-              <span className="text-[10px] font-extrabold not-italic px-2.5 py-0.5 rounded-full bg-rose-950/80 text-rose-400 border border-rose-600/40">
-                {driverProfile.name}
-              </span>
-            </h2>
-            <p className="text-xs text-zinc-400">{driverProfile.vehicle}</p>
-          </div>
-        </div>
+    html, body {
+      background-color: #000000;
+      color: #f4f4f6;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+      width: 100%;
+    }
 
-        <button
-          onClick={() => setIsOnline(!isOnline)}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all border uppercase ${
-            isOnline 
-              ? 'bg-rose-950/60 border-rose-600/50 text-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.3)]' 
-              : 'bg-zinc-900 border-zinc-800 text-zinc-500'
-          }`}
-        >
-          <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-rose-500 animate-ping' : 'bg-zinc-600'}`}></span>
-          {isOnline ? 'CONECTADO' : 'DESCONECTADO'}
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #000000;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ff007f;
+    }
+
+    .neon-border-pink {
+      border-color: #ff007f;
+      box-shadow: 0 0 25px rgba(255, 0, 127, 0.25);
+    }
+    
+    .neon-border-cyan {
+      border-color: #00f0ff;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.25);
+    }
+
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 1rem);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col justify-between bg-black text-zinc-100 min-h-screen selection:bg-[#ff007f] selection:text-white">
+
+  <!-- FULL BLACK PORTAL LANDING -->
+  <div id="landing-portal" class="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-3 sm:p-6 transition-all duration-500 overflow-y-auto">
+
+    <div class="max-w-md w-full bg-black rounded-3xl p-5 sm:p-8 shadow-2xl text-center space-y-6 border border-zinc-800 neon-border-pink relative overflow-hidden my-auto">
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#ff007f] via-[#00f0ff] to-[#00ff87]"></div>
+
+      <div class="space-y-2 sm:space-y-3 pt-2 relative z-10">
+        <h1 class="text-3xl xs:text-4xl sm:text-5xl font-black font-sans tracking-tight text-white drop-shadow-lg">
+          QUICK<span class="text-[#ff007f]">BOX</span>
+        </h1>
+        <p class="text-[11px] xs:text-xs sm:text-sm font-bold text-white tracking-widest uppercase font-sans drop-shadow">
+          ¡No solo entregamos, cumplimos!
+        </p>
+        <p class="text-[10px] xs:text-[11px] sm:text-xs text-zinc-400 pt-1 font-sans leading-relaxed">
+          Seleccione su perfil de acceso para ingresar al sistema de cadetería en tiempo real.
+        </p>
+      </div>
+
+      <div class="space-y-2.5 sm:space-y-3 pt-2 relative z-10">
+        <button onclick="enterPortalAs('store')" class="w-full bg-[#ff007f] hover:bg-pink-600 active:scale-95 text-white font-bold py-3.5 px-4 rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-pink-500/25 transition-all flex items-center justify-center gap-3">
+          <i class="fa-solid fa-store text-base"></i> Ingresar como Comercio
+        </button>
+        <button onclick="enterPortalAs('driver')" class="w-full bg-[#00f0ff] hover:bg-cyan-400 active:scale-95 text-black font-bold py-3.5 px-4 rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center gap-3">
+          <i class="fa-solid fa-motorcycle text-base"></i> Ingresar como Repartidor
+        </button>
+        <button onclick="enterPortalAs('admin')" class="w-full bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-[#00ff87] border border-zinc-700 font-bold py-3 px-4 rounded-2xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-3">
+          <i class="fa-solid fa-shield-halved text-base"></i> Panel de Administración
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-zinc-900/80 border border-zinc-800 p-3.5 rounded-2xl flex items-center justify-between shadow-inner">
-          <div>
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Ganancias Hoy</p>
-            <p className="text-lg font-black text-rose-400 mt-0.5">${totalEarnings.toLocaleString()}</p>
-          </div>
-          <div className="p-2.5 bg-rose-950/60 text-rose-400 rounded-xl border border-rose-600/30">
-            <DollarSign className="w-4 h-4" />
-          </div>
-        </div>
-
-        <div className="bg-zinc-900/80 border border-zinc-800 p-3.5 rounded-2xl flex items-center justify-between shadow-inner">
-          <div>
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">Viajes Hoy</p>
-            <p className="text-lg font-black text-white mt-0.5">{completedOrders.length}</p>
-          </div>
-          <div className="p-2.5 bg-rose-950/60 text-rose-400 rounded-xl border border-rose-600/30">
-            <CheckCircle2 className="w-4 h-4" />
-          </div>
-        </div>
-      </div>
-
-      {/* Active Order Workflow */}
-      {activeOrder && (
-        <div className="bg-black/90 border-2 border-rose-600/60 rounded-2xl p-4 flex flex-col gap-3 shadow-[0_0_25px_rgba(244,63,94,0.2)] relative overflow-hidden">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
-            <span className="text-xs font-black text-rose-400 flex items-center gap-2 uppercase tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-              EN CURSO ({activeOrder.id})
-            </span>
-            <span className="text-xs font-black text-white bg-rose-600 px-2.5 py-0.5 rounded-lg shadow-[0_0_10px_rgba(244,63,94,0.5)]">
-              Ganancia: ${activeOrder.deliveryFee}
-            </span>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <div className="flex items-start gap-2.5 bg-zinc-900/80 p-2.5 rounded-xl border border-zinc-800">
-              <Store className="w-4 h-4 text-rose-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-bold text-zinc-200">{activeOrder.storeName}</p>
-                <p className="text-[11px] text-zinc-400">{activeOrder.storeAddress}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5 bg-zinc-900/80 p-2.5 rounded-xl border border-zinc-800">
-              <MapPin className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-bold text-zinc-200">{activeOrder.customerName}</p>
-                <p className="text-[11px] text-zinc-400">{activeOrder.customerAddress}</p>
-                {activeOrder.customerPhone && (
-                  <p className="text-[11px] text-rose-400 flex items-center gap-1 mt-1 font-semibold">
-                    <Phone className="w-3 h-3" /> {activeOrder.customerPhone}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-zinc-900/50 p-2.5 rounded-xl border border-zinc-800 text-zinc-300">
-              <p className="text-[10px] text-zinc-500 uppercase font-bold">Detalle de productos:</p>
-              <p className="text-xs mt-0.5">{activeOrder.items}</p>
-              <p className="text-xs font-bold text-zinc-200 mt-1">
-                Cobrar al cliente: <span className="text-rose-400 font-black">${activeOrder.price.toLocaleString()}</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="pt-1 flex flex-col gap-2">
-            {activeOrder.status === 'assigned' && (
-              <button
-                onClick={() => onUpdateStatus(activeOrder.id, 'at_store', 'Repartidor llegó al local')}
-                className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-xs shadow-[0_0_15px_rgba(244,63,94,0.4)] transition-all flex items-center justify-center gap-2 uppercase tracking-wider active:scale-[0.99]"
-              >
-                <Store className="w-4 h-4" /> 1. Llegué al Local
-              </button>
-            )}
-
-            {activeOrder.status === 'at_store' && (
-              <button
-                onClick={() => onUpdateStatus(activeOrder.id, 'picked_up', 'Pedido retirado y en camino')}
-                className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-xs shadow-[0_0_15px_rgba(244,63,94,0.4)] transition-all flex items-center justify-center gap-2 uppercase tracking-wider active:scale-[0.99]"
-              >
-                <ShoppingBag className="w-4 h-4" /> 2. Retiré el Pedido (En Camino)
-              </button>
-            )}
-
-            {activeOrder.status === 'picked_up' && (
-              <button
-                onClick={() => onUpdateStatus(activeOrder.id, 'delivered', 'Entregado con éxito al cliente')}
-                className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-xl text-xs shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2 uppercase tracking-wider active:scale-[0.99]"
-              >
-                <CheckCircle2 className="w-5 h-5" /> 3. Confirmar Entrega
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Available Feed */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-extrabold text-zinc-400 uppercase tracking-wider">Mural de Pedidos ({availableOrders.length})</span>
-          <span className="text-rose-400 text-[11px] font-extrabold flex items-center gap-1 uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> En vivo
-          </span>
-        </div>
-
-        {!isOnline ? (
-          <div className="text-center py-10 text-zinc-500 text-xs border border-dashed border-zinc-800 rounded-2xl">
-            Ponte "Conectado" para ver los pedidos en zona.
-          </div>
-        ) : availableOrders.length === 0 ? (
-          <div className="text-center py-10 text-zinc-500 text-xs border border-dashed border-zinc-800 rounded-2xl flex flex-col items-center gap-2">
-            <RefreshCw className="w-5 h-5 text-rose-600 animate-spin" />
-            <span>Buscando nuevos pedidos QUICK BOX...</span>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3 max-h-[420px] overflow-y-auto pr-1">
-            {availableOrders.map(order => (
-              <AvailableOrderCard 
-                key={order.id} 
-                order={order} 
-                hasActiveOrder={!!activeOrder}
-                onAccept={() => onAcceptOrder(order.id, driverProfile)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
     </div>
-  );
-}
+  </div>
 
-function AvailableOrderCard({ order, hasActiveOrder, onAccept }) {
-  return (
-    <div className="bg-zinc-900/70 border border-zinc-800 hover:border-rose-600/50 rounded-2xl p-4 flex flex-col gap-3 transition-all group shadow-md">
-      <div className="flex items-start justify-between">
+  <!-- MAIN APP HEADER -->
+  <header class="bg-black border-b border-zinc-900 sticky top-0 z-40 backdrop-blur-md bg-black/90">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-auto py-3 flex flex-row items-center justify-between gap-3">
+      
+      <div class="flex items-center gap-3 cursor-pointer" onclick="returnToPortal()">
+        <div class="flex items-center gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-lg xs:text-xl sm:text-2xl tracking-tight text-white font-mono">QUICK<span class="text-[#ff007f]">BOX</span></span>
+            </div>
+            <div class="text-[10px] sm:text-xs text-white font-bold tracking-wide font-mono hidden xs:block">
+              <span>¡No solo entregamos, cumplimos!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="returnToPortal()" class="text-xs bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-zinc-300 px-3 py-2 rounded-xl border border-zinc-800 flex items-center gap-2 transition-all">
+          <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Cambiar Perfil</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- AUTHENTICATION MODAL -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-black border border-zinc-800 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative neon-border-pink">
+      <div class="absolute top-4 left-4 flex items-center gap-2">
+        <button onclick="backToPortalFromAuth()" class="text-zinc-400 hover:text-white p-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+          <i class="fa-solid fa-arrow-left"></i> Volver
+        </button>
+      </div>
+
+      <div class="text-center mb-6 pt-4">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-pink-950/60 border border-pink-500/40 flex items-center justify-center text-[#ff007f] text-xl sm:text-2xl mb-3">
+          <i id="auth-icon" class="fa-solid fa-lock"></i>
+        </div>
+        <h3 id="auth-title" class="text-lg sm:text-xl font-black text-white font-mono">Ingreso de Seguridad</h3>
+        <p id="auth-subtitle" class="text-xs text-zinc-400 mt-1">Ingrese la clave correspondiente para continuar</p>
+      </div>
+
+      <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
         <div>
-          <span className="text-xs font-black text-white">{order.storeName}</span>
-          <p className="text-[11px] text-zinc-400 flex items-center gap-1 mt-0.5">
-            <MapPin className="w-3 h-3 text-rose-400" /> {order.storeAddress}
-          </p>
+          <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">Contraseña de Acceso</label>
+          <div class="relative">
+            <input type="password" id="auth-password-input" required autocomplete="off" placeholder="••••••••" class="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#ff007f] focus:ring-1 focus:ring-[#ff007f]">
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-3.5 text-zinc-500 hover:text-white">
+              <i id="pass-eye-icon" class="fa-solid fa-eye-slash"></i>
+            </button>
+          </div>
         </div>
-        <div className="text-right">
-          <span className="text-xs font-black text-white bg-rose-600 px-2.5 py-0.5 rounded-lg shadow-[0_0_10px_rgba(244,63,94,0.4)]">
-            +${order.deliveryFee.toLocaleString()}
-          </span>
-          <p className="text-[10px] text-zinc-500 mt-0.5">Pago envío</p>
+
+        <div id="auth-error" class="hidden text-xs text-rose-400 bg-rose-950/40 border border-rose-800/60 p-2.5 rounded-xl text-center">
+          Contraseña incorrecta. Por favor reintente.
         </div>
-      </div>
 
-      <div className="bg-black/50 p-2.5 rounded-xl border border-zinc-800 text-xs space-y-1">
-        <p className="text-zinc-300"><strong>Destino:</strong> {order.customerAddress}</p>
-        <p className="text-zinc-400 text-[11px]"><strong>Pedido:</strong> {order.items}</p>
-        <p className="text-zinc-400 text-[11px]"><strong>Cobrar:</strong> ${order.price.toLocaleString()}</p>
-      </div>
-
-      <button
-        onClick={onAccept}
-        disabled={hasActiveOrder}
-        className={`w-full py-2.5 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${
-          hasActiveOrder
-            ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
-            : 'bg-rose-600 hover:bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)] group-hover:scale-[1.01]'
-        }`}
-      >
-        <Check className="w-4 h-4" /> 
-        {hasActiveOrder ? 'Ya tienes un viaje en curso' : 'Aceptar Pedido'}
-      </button>
+        <button type="submit" class="w-full bg-gradient-to-r from-[#ff007f] to-purple-600 hover:from-pink-600 hover:to-purple-700 active:scale-95 text-white font-bold py-3 rounded-xl text-sm shadow-lg shadow-pink-500/25 transition-all">
+          Iniciar Sesión
+        </button>
+      </form>
     </div>
-  );
-}
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+
+    <!-- STORE VIEW -->
+    <section id="view-store" class="space-y-4 sm:space-y-6">
+      <div class="bg-black border border-zinc-800 rounded-2xl p-3.5 sm:px-6 sm:py-4 flex flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3 w-full">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-pink-950/60 border border-pink-500/40 flex items-center justify-center text-[#ff007f] text-base sm:text-lg flex-shrink-0">
+            <i class="fa-solid fa-store"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="text-[10px] uppercase font-bold tracking-wider text-zinc-500">Comercio Conectado</div>
+            <div id="store-session-display-name" class="text-xs sm:text-sm font-black text-white truncate">Local Comercial</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        
+        <!-- DIRECT ORDER FORM -->
+        <div class="lg:col-span-5 bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
+            <h2 class="text-xs sm:text-base font-bold text-white flex items-center gap-2 font-mono">
+              <i class="fa-solid fa-box-open text-[#ff007f]"></i> EMITIR NUEVO ENVÍO
+            </h2>
+            <button type="button" onclick="clearOrderForm()" class="text-xs text-zinc-500 hover:text-rose-400 bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-800">
+              <i class="fa-solid fa-eraser"></i> Borrar
+            </button>
+          </div>
+
+          <form id="form-create-order" onsubmit="submitNewOrder(event)" class="space-y-3.5">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                <i class="fa-solid fa-flag-checkered text-[#ff007f] mr-1"></i> Dirección de Entrega (Destino)
+              </label>
+              <div class="flex gap-2">
+                <input type="text" id="order-destination" required placeholder="Ej: Calle Las Heras 890" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#ff007f]">
+                <button type="button" onclick="openGoogleMaps('order-destination')" class="bg-zinc-900 hover:bg-zinc-800 text-[#ff007f] px-3.5 py-2.5 rounded-xl border border-zinc-800 text-xs flex-shrink-0" title="Ver en Google Maps">
+                  <i class="fa-solid fa-map-location-dot"></i>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                <i class="fa-solid fa-share-nodes text-[#00ff87] mr-1"></i> Compartir Ubicación Google Maps
+              </label>
+              <input type="url" id="order-maps-link" placeholder="Pegar enlace o Pin (https://maps.app.goo.gl/...)" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00ff87]">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Cliente Recibe</label>
+                <input type="text" id="order-client-name" required placeholder="Nombre..." class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-pink-500">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Celular Cliente</label>
+                <input type="tel" id="order-client-phone" required placeholder="261..." class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-pink-500">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                <i class="fa-solid fa-route text-[#00f0ff] mr-1"></i> Rango de Envío
+              </label>
+              <select id="order-tier-select" onchange="updateCalculatedTariff()" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-[#ff007f]">
+                <option value="tier1">0 a 3 km — $3.000</option>
+                <option value="tier2">3 a 6 km — $4.500</option>
+                <option value="tier3">6 a 9 km — $6.500</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                <i class="fa-solid fa-clock text-amber-400 mr-1"></i> Demora de Pedido / Preparación
+              </label>
+              <select id="order-delay-select" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-400">
+                <option value="Listo para retirar">Listo para retirar</option>
+                <option value="5 minutos">5 minutos</option>
+                <option value="10 a 15 minutos">10 a 15 minutos</option>
+                <option value="15 a 30 minutos">15 a 30 minutos</option>
+                <option value="30 a 45 minutos">30 a 45 minutos</option>
+                <option value="45 a 60 minutos">45 a 60 minutos</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                  <i class="fa-solid fa-wallet text-[#00ff87] mr-1"></i> Método de Pago
+                </label>
+                <select id="order-payment-method" onchange="togglePaymentAmountField()" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-[#00ff87]">
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Transferencia (Mercado Pago / Bancaria)">Transferencia</option>
+                  <option value="Pagado">Pagado</option>
+                </select>
+              </div>
+              <div id="payment-amount-wrapper">
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                  <i class="fa-solid fa-money-bill-wave text-[#00ff87] mr-1"></i> Monto a Cobrar ($)
+                </label>
+                <input type="text" id="order-payment-amount" placeholder="Ej: $12.500" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00ff87]">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-[#ff007f] to-pink-600 hover:from-pink-600 hover:to-pink-700 active:scale-95 text-white font-bold py-3.5 rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-pink-500/25 transition-all">
+              <i class="fa-solid fa-paper-plane mr-1"></i> Solicitar Envío Ahora
+            </button>
+          </form>
+        </div>
+
+        <!-- LIVE ORDERS KANBAN -->
+        <div class="lg:col-span-7 bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex flex-row items-center justify-between border-b border-zinc-900 pb-3 gap-2">
+            <h2 class="text-xs sm:text-base font-bold text-white flex items-center gap-2 font-mono">
+              <i class="fa-solid fa-radar text-[#00f0ff]"></i> MONITOR DE PEDIDOS ACTIVOS
+            </h2>
+            <div class="flex items-center gap-2">
+              <span class="text-xs bg-zinc-900 text-zinc-400 px-2.5 py-1 rounded-full border border-zinc-800">
+                <span id="active-orders-count" class="text-[#00ff87] font-bold">0</span> <span class="hidden sm:inline">En Curso</span>
+              </span>
+              <button type="button" onclick="clearAllOrders()" class="text-xs text-rose-400 hover:text-white bg-rose-950/60 hover:bg-rose-900 px-2.5 py-1 rounded-xl border border-rose-800/60 flex items-center gap-1.5 transition-all" title="Borrar todo el monitor">
+                <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">Borrar Todo</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="store-orders-container" class="space-y-3 min-h-[200px] sm:min-h-[250px]"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- DRIVER VIEW -->
+    <section id="view-driver" class="hidden space-y-4 sm:space-y-6">
+      <div class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-cyan-950/60 border border-cyan-500/40 flex items-center justify-center text-[#00f0ff] text-xl sm:text-2xl font-black flex-shrink-0">
+            <i class="fa-solid fa-motorcycle"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-sm sm:text-lg font-bold text-white flex items-center gap-2 flex-wrap">
+              <span id="driver-session-display-name" class="truncate">Repartidor Principal</span>
+              <span id="driver-duty-badge" class="text-[10px] sm:text-xs bg-emerald-950 text-[#00ff87] border border-emerald-800/60 px-2.5 py-0.5 rounded-full font-semibold">Online</span>
+            </h2>
+            <div class="text-[11px] sm:text-xs text-zinc-400">Repartidor Oficial • WA: <span id="driver-session-phone" class="text-white">261 000-0000</span></div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button onclick="refreshApplication()" class="bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-[#00f0ff] border border-zinc-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center transition-all shrink-0" title="Actualizar Datos">
+            <i class="fa-solid fa-rotate text-base"></i>
+          </button>
+          <button onclick="toggleDriverDuty()" id="btn-driver-duty" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold bg-[#00ff87]/20 text-[#00ff87] border border-[#00ff87]/40 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-circle text-[8px]"></i> <span class="whitespace-nowrap">En Servicio</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex border-b border-zinc-800 gap-1 sm:gap-2 overflow-x-auto pb-1">
+        <button onclick="switchDriverTab('radar')" id="driver-tab-radar" class="px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#00f0ff] border-b-2 border-[#00f0ff] flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-satellite-dish"></i> Radar
+        </button>
+        <button onclick="switchDriverTab('my-orders')" id="driver-tab-my-orders" class="px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-box-archive"></i> Mi Monitor <span id="driver-my-orders-count-badge" class="bg-zinc-800 text-white px-2 py-0.5 rounded-full text-[10px]">0</span>
+        </button>
+        <button onclick="switchDriverTab('colleagues')" id="driver-tab-colleagues" class="px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-users"></i> Compañeros
+        </button>
+      </div>
+
+      <div id="driver-view-radar" class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+        <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
+          <i class="fa-solid fa-satellite-dish text-[#ff007f]"></i> RADAR DE SOLICITUDES DISPONIBLES
+        </h3>
+        <div id="driver-radar-feed" class="space-y-3"></div>
+      </div>
+
+      <div id="driver-view-my-orders" class="hidden bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+        <div class="flex flex-row items-center justify-between border-b border-zinc-900 pb-3 gap-2">
+          <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
+            <i class="fa-solid fa-box-archive text-[#00f0ff]"></i> MIS PEDIDOS ASIGNADOS
+          </h3>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="clearDriverPersonalOrders()" class="text-xs text-rose-400 hover:text-white bg-rose-950/60 hover:bg-rose-900 px-2.5 py-1 rounded-xl border border-rose-800/60 flex items-center gap-1.5 transition-all" title="Limpiar tu monitor personal">
+              <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">Borrar Todo</span>
+            </button>
+          </div>
+        </div>
+        <div id="driver-my-orders-feed" class="space-y-3"></div>
+      </div>
+
+      <div id="driver-view-colleagues" class="hidden bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
+          <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
+            <i class="fa-solid fa-users text-[#00ff87]"></i> COMPAÑEROS ACTIVOS
+          </h3>
+          <span class="text-[10px] sm:text-xs bg-emerald-950/60 text-[#00ff87] px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-bold">En línea</span>
+        </div>
+        <div id="driver-colleagues-feed" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+      </div>
+    </section>
+
+    <!-- ADMIN VIEW -->
+    <section id="view-admin" class="hidden space-y-4 sm:space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        
+        <!-- Add / Manage Local (Store) -->
+        <div class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
+            <h3 class="text-xs sm:text-sm font-bold text-white font-mono flex items-center gap-2">
+              <i class="fa-solid fa-store text-[#ff007f]"></i> GESTIÓN DE LOCALES / COMERCIOS
+            </h3>
+            <span class="text-[10px] bg-pink-950/60 text-[#ff007f] px-2 py-0.5 rounded border border-pink-500/30 font-bold">Nuevo</span>
+          </div>
+
+          <form onsubmit="addNewStore(event)" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">Nombre Local</label>
+                <input type="text" id="new-store-name" required placeholder="Ej: Burger House" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">Contraseña</label>
+                <input type="password" id="new-store-pass" required placeholder="Clave acceso..." class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white">
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-[#ff007f] hover:bg-pink-600 active:scale-95 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-lg shadow-pink-500/20">
+              <i class="fa-solid fa-plus mr-1"></i> Registrar Nuevo Local
+            </button>
+          </form>
+
+          <div class="pt-2">
+            <div class="text-xs font-bold text-zinc-400 mb-2">Locales Registrados:</div>
+            <div id="stores-list-container" class="space-y-2 max-h-36 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- Add / Manage Drivers -->
+        <div class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
+            <h3 class="text-xs sm:text-sm font-bold text-white font-mono flex items-center gap-2">
+              <i class="fa-solid fa-motorcycle text-[#00f0ff]"></i> GESTIÓN DE REPARTIDORES
+            </h3>
+            <span class="text-[10px] bg-cyan-950/60 text-[#00f0ff] px-2 py-0.5 rounded border border-cyan-500/30 font-bold">Nuevo</span>
+          </div>
+
+          <form onsubmit="addNewDriver(event)" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">Nombre</label>
+                <input type="text" id="new-driver-name" required placeholder="Ej: MATI" class="w-full bg-black border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">WhatsApp</label>
+                <input type="tel" id="new-driver-phone" required placeholder="261..." class="w-full bg-black border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">PIN Acceso</label>
+                <input type="password" id="new-driver-pass" required placeholder="PIN..." class="w-full bg-black border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-[#00f0ff] hover:bg-cyan-500 active:scale-95 text-black font-bold py-2.5 rounded-xl text-xs transition-all shadow-lg shadow-cyan-500/20">
+              <i class="fa-solid fa-user-plus mr-1"></i> Registrar Repartidor
+            </button>
+          </form>
+
+          <div class="pt-2">
+            <div class="text-xs font-bold text-zinc-400 mb-2">Repartidores Registrados:</div>
+            <div id="drivers-list-container" class="space-y-2 max-h-36 overflow-y-auto"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Config Tariff Rates Panel -->
+      <div class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+        <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-[#00ff87]"></i> CONFIGURACIÓN DE TARIFAS DE ENVÍO
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div class="bg-black border border-zinc-800 p-3.5 rounded-2xl">
+            <div class="text-[11px] font-bold text-zinc-400 mb-1">Rango 0 a 3 km</div>
+            <div class="flex items-center gap-2">
+              <span class="text-zinc-500 text-xs">$</span>
+              <input type="number" id="rate-0-3" value="3000" onchange="saveTariffsFromAdmin()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs font-bold text-[#00ff87]">
+            </div>
+          </div>
+          <div class="bg-black border border-zinc-800 p-3.5 rounded-2xl">
+            <div class="text-[11px] font-bold text-zinc-400 mb-1">Rango 3 a 6 km</div>
+            <div class="flex items-center gap-2">
+              <span class="text-zinc-500 text-xs">$</span>
+              <input type="number" id="rate-3-6" value="4500" onchange="saveTariffsFromAdmin()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs font-bold text-[#00ff87]">
+            </div>
+          </div>
+          <div class="bg-black border border-zinc-800 p-3.5 rounded-2xl">
+            <div class="text-[11px] font-bold text-zinc-400 mb-1">Rango 6 a 9 km</div>
+            <div class="flex items-center gap-2">
+              <span class="text-zinc-500 text-xs">$</span>
+              <input type="number" id="rate-6-9" value="6500" onchange="saveTariffsFromAdmin()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs font-bold text-[#00ff87]">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-black border-t border-zinc-900 py-4 mt-6 text-center text-xs text-zinc-600 pb-safe">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div>
+        Quick Box Delivery &copy; 2026 • Sistema de Cadetería en Tiempo Real
+        <div class="text-[#00f0ff] font-bold text-[11px] mt-0.5">APLICACIÓN CREADA POR ANDRÉS LEÓN</div>
+      </div>
+      <div class="flex items-center gap-3 text-zinc-500">
+        <span class="text-[#00ff87] text-[11px]"><i class="fa-solid fa-circle text-[8px]"></i> Servidor Activo</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-[90vw] sm:max-w-md"></div>
+
+  <script>
+    let currentRole = null;
+    let pendingRole = null;
+    let currentDriverTab = 'radar';
+    let driverDutyStatus = true;
+
+    // Load persisted tariffs or defaults
+    let savedTariffs = JSON.parse(localStorage.getItem('qb_tariffs'));
+    let tariffs = savedTariffs || { tier1: 3000, tier2: 4500, tier3: 6500 };
+
+    // Default example stores & drivers (with LocalStorage fallback)
+    const initialStores = [
+      { id: 's1', name: 'Burger House', pass: 'b123' },
+      { id: 's2', name: 'Pizzería Centro', pass: 'p123' }
+    ];
+
+    const initialDrivers = [
+      { id: 'd1', name: 'MATI', phone: '2615949456', pass: 'M123', active: true },
+      { id: 'd2', name: 'Lucas Cadete', phone: '2610001122', pass: 'L123', active: true }
+    ];
+
+    let stores = JSON.parse(localStorage.getItem('qb_stores')) || initialStores;
+    let drivers = JSON.parse(localStorage.getItem('qb_drivers')) || initialDrivers;
+    let orders = JSON.parse(localStorage.getItem('qb_orders')) || [];
+
+    let currentSessionUser = null;
+
+    function saveStateToLocalStorage() {
+      localStorage.setItem('qb_stores', JSON.stringify(stores));
+      localStorage.setItem('qb_drivers', JSON.stringify(drivers));
+      localStorage.setItem('qb_orders', JSON.stringify(orders));
+      localStorage.setItem('qb_tariffs', JSON.stringify(tariffs));
+    }
+
+    function playDriverBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const notes = [
+          { freq: 880, duration: 0.08, delay: 0 },
+          { freq: 1318.51, duration: 0.12, delay: 0.1 }
+        ];
+        notes.forEach(note => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(note.freq, ctx.currentTime + note.delay);
+          gain.gain.setValueAtTime(0.25, ctx.currentTime + note.delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + note.delay + note.duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + note.delay);
+          osc.stop(ctx.currentTime + note.delay + note.duration);
+        });
+      } catch (e) {
+        console.warn('Audio feedback restricted:', e);
+      }
+    }
+
+    function enterPortalAs(role) {
+      pendingRole = role;
+      const modal = document.getElementById('auth-modal');
+      const title = document.getElementById('auth-title');
+      const subtitle = document.getElementById('auth-subtitle');
+      const icon = document.getElementById('auth-icon');
+      const passInput = document.getElementById('auth-password-input');
+      const eyeIcon = document.getElementById('pass-eye-icon');
+
+      passInput.value = '';
+      passInput.type = 'password';
+      if (eyeIcon) eyeIcon.className = 'fa-solid fa-eye-slash';
+      document.getElementById('auth-error').classList.add('hidden');
+
+      if (role === 'admin') {
+        title.innerText = 'Acceso Administración';
+        subtitle.innerText = 'Ingrese clave de administrador';
+        icon.className = 'fa-solid fa-shield-halved';
+      } else if (role === 'store') {
+        title.innerText = 'Acceso Comercios';
+        subtitle.innerText = 'Ingrese su clave de local registrado';
+        icon.className = 'fa-solid fa-store';
+      } else if (role === 'driver') {
+        title.innerText = 'Acceso Repartidores';
+        subtitle.innerText = 'Ingrese su PIN de cadete activo';
+        icon.className = 'fa-solid fa-motorcycle';
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function togglePasswordVisibility() {
+      const input = document.getElementById('auth-password-input');
+      const eye = document.getElementById('pass-eye-icon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        eye.className = 'fa-solid fa-eye';
+      } else {
+        input.type = 'password';
+        eye.className = 'fa-solid fa-eye-slash';
+      }
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const pass = document.getElementById('auth-password-input').value.trim();
+      const errorMsg = document.getElementById('auth-error');
+
+      if (pendingRole === 'admin') {
+        if (pass === 'bsl22') {
+          currentRole = 'admin';
+          currentSessionUser = { name: 'Administrador General' };
+          showView('view-admin');
+          document.getElementById('auth-modal').classList.add('hidden');
+          document.getElementById('landing-portal').classList.add('hidden');
+          showToast('Bienvenido Administrador', 'success');
+          renderAdminLists();
+          loadTariffsIntoInputs();
+        } else {
+          errorMsg.innerText = 'Contraseña de admin incorrecta';
+          errorMsg.classList.remove('hidden');
+        }
+      } else if (pendingRole === 'store') {
+        const foundStore = stores.find(s => s.pass === pass);
+        if (foundStore) {
+          currentRole = 'store';
+          currentSessionUser = foundStore;
+          document.getElementById('store-session-display-name').innerText = foundStore.name;
+          showView('view-store');
+          document.getElementById('auth-modal').classList.add('hidden');
+          document.getElementById('landing-portal').classList.add('hidden');
+          showToast(`Conectado como ${foundStore.name}`, 'success');
+          renderStoreOrders();
+        } else {
+          errorMsg.innerText = 'Clave de comercio no registrada';
+          errorMsg.classList.remove('hidden');
+        }
+      } else if (pendingRole === 'driver') {
+        const foundDriver = drivers.find(d => d.pass === pass);
+        if (foundDriver) {
+          currentRole = 'driver';
+          currentSessionUser = foundDriver;
+          document.getElementById('driver-session-display-name').innerText = foundDriver.name;
+          document.getElementById('driver-session-phone').innerText = foundDriver.phone;
+          showView('view-driver');
+          document.getElementById('auth-modal').classList.add('hidden');
+          document.getElementById('landing-portal').classList.add('hidden');
+          showToast(`Hola ${foundDriver.name}, estás en línea`, 'success');
+          renderDriverFeeds();
+        } else {
+          errorMsg.innerText = 'PIN de repartidor incorrecto';
+          errorMsg.classList.remove('hidden');
+        }
+      }
+    }
+
+    function returnToPortal() {
+      currentRole = null;
+      currentSessionUser = null;
+      document.getElementById('landing-portal').classList.remove('hidden');
+    }
+
+    function showView(viewId) {
+      document.getElementById('view-store').classList.add('hidden');
+      document.getElementById('view-driver').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+      document.getElementById(viewId).classList.remove('hidden');
+    }
+
+    function togglePaymentAmountField() {
+      const method = document.getElementById('order-payment-method').value;
+      const wrapper = document.getElementById('payment-amount-wrapper');
+      if (method === 'Pagado') {
+        wrapper.classList.add('hidden');
+      } else {
+        wrapper.classList.remove('hidden');
+      }
+    }
+
+    function submitNewOrder(e) {
+      e.preventDefault();
+      const dest = document.getElementById('order-destination').value.trim();
+      const mapsLink = document.getElementById('order-maps-link').value.trim();
+      const clientName = document.getElementById('order-client-name').value.trim();
+      const clientPhone = document.getElementById('order-client-phone').value.trim();
+      const tier = document.getElementById('order-tier-select').value;
+      const delay = document.getElementById('order-delay-select').value;
+      const paymentMethod = document.getElementById('order-payment-method').value;
+      const paymentAmount = document.getElementById('order-payment-amount').value.trim();
+
+      const newOrder = {
+        id: 'QB-' + Math.floor(100 + Math.random() * 900),
+        storeId: currentSessionUser ? currentSessionUser.id : 's1',
+        storeName: currentSessionUser ? currentSessionUser.name : 'Local Comercial',
+        destination: dest,
+        mapsLink: mapsLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest)}`,
+        clientName: clientName,
+        clientPhone: clientPhone,
+        tier: tier,
+        tariff: tariffs[tier] || 3000,
+        delay: delay,
+        paymentMethod: paymentMethod,
+        paymentAmount: paymentMethod === 'Pagado' ? 'PAGADO' : (paymentAmount || '$0'),
+        status: 'pending',
+        driverId: null,
+        driverName: null,
+        createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      orders.unshift(newOrder);
+      saveStateToLocalStorage();
+      playDriverBeep();
+
+      showToast(`¡Nuevo pedido en camino! (${newOrder.id})`, 'success');
+      clearOrderForm();
+      renderStoreOrders();
+      renderDriverFeeds();
+    }
+
+    function clearOrderForm() {
+      document.getElementById('form-create-order').reset();
+      togglePaymentAmountField();
+    }
+
+    function openGoogleMaps(inputId) {
+      const val = document.getElementById(inputId).value;
+      if (val) {
+        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(val)}`, '_blank');
+      } else {
+        showToast('Ingrese una dirección primero', 'info');
+      }
+    }
+
+    function renderStoreOrders() {
+      const container = document.getElementById('store-orders-container');
+      const activeCount = document.getElementById('active-orders-count');
+      
+      const storeOrders = currentSessionUser && currentRole === 'store' ? orders.filter(o => o.storeId === currentSessionUser.id) : orders;
+      activeCount.innerText = storeOrders.filter(o => o.status !== 'delivered').length;
+
+      if (storeOrders.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 sm:py-10 text-zinc-600 border border-dashed border-zinc-800 rounded-2xl">
+            <i class="fa-solid fa-box-open text-xl sm:text-2xl mb-2 text-zinc-700"></i>
+            <p class="text-xs font-bold">No hay pedidos emitidos aún.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = storeOrders.map(order => `
+        <div class="bg-black border ${order.status === 'pending' ? 'border-amber-500/40' : order.status === 'assigned' ? 'border-cyan-500/40' : 'border-emerald-500/40'} p-3.5 sm:p-4 rounded-2xl space-y-2.5 relative">
+          <div class="flex items-center justify-between border-b border-zinc-900 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-bold text-xs text-[#ff007f]">${order.id}</span>
+              <span class="text-[10px] text-zinc-500">${order.createdAt}</span>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${order.status === 'pending' ? 'bg-amber-950 text-amber-400 border border-amber-800/50' : order.status === 'assigned' ? 'bg-cyan-950 text-[#00f0ff] border border-cyan-800/50' : 'bg-emerald-950 text-[#00ff87] border border-emerald-800/50'}">
+              ${order.status === 'pending' ? 'Buscando Repartidor' : order.status === 'assigned' ? `Cadete: ${order.driverName}` : 'Entregado'}
+            </span>
+          </div>
+
+          <div class="space-y-1 text-xs">
+            <div class="text-white font-bold"><i class="fa-solid fa-location-dot text-[#ff007f] mr-1"></i> ${order.destination}</div>
+            <div class="text-zinc-400"><i class="fa-solid fa-user text-zinc-500 mr-1"></i> ${order.clientName} (${order.clientPhone})</div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-zinc-400"><i class="fa-solid fa-clock text-amber-400 mr-1"></i> ${order.delay}</span>
+              <span class="font-bold text-[#00ff87]">${order.paymentMethod}: ${order.paymentAmount}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function clearAllOrders() {
+      orders = [];
+      saveStateToLocalStorage();
+      renderStoreOrders();
+      renderDriverFeeds();
+      showToast('Todos los pedidos eliminados', 'info');
+    }
+
+    function switchDriverTab(tab) {
+      currentDriverTab = tab;
+      document.getElementById('driver-tab-radar').className = tab === 'radar' ? 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#00f0ff] border-b-2 border-[#00f0ff] flex items-center gap-1.5 whitespace-nowrap' : 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap';
+      document.getElementById('driver-tab-my-orders').className = tab === 'my-orders' ? 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#00f0ff] border-b-2 border-[#00f0ff] flex items-center gap-1.5 whitespace-nowrap' : 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap';
+      document.getElementById('driver-tab-colleagues').className = tab === 'colleagues' ? 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#00f0ff] border-b-2 border-[#00f0ff] flex items-center gap-1.5 whitespace-nowrap' : 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap';
+
+      document.getElementById('driver-view-radar').classList.toggle('hidden', tab !== 'radar');
+      document.getElementById('driver-view-my-orders').classList.toggle('hidden', tab !== 'my-orders');
+      document.getElementById('driver-view-colleagues').classList.toggle('hidden', tab !== 'colleagues');
+
+      renderDriverFeeds();
+    }
+
+    function acceptOrder(orderId) {
+      if (!currentSessionUser) return;
+      const order = orders.find(o => o.id === orderId);
+      if (order && order.status === 'pending') {
+        order.status = 'assigned';
+        order.driverId = currentSessionUser.id;
+        order.driverName = currentSessionUser.name;
+        saveStateToLocalStorage();
+        showToast(`Pedido ${order.id} asignado a tu monitor`, 'success');
+        renderDriverFeeds();
+        renderStoreOrders();
+      }
+    }
+
+    function markOrderDelivered(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        order.status = 'delivered';
+        saveStateToLocalStorage();
+        showToast(`Pedido ${order.id} finalizado`, 'success');
+        renderDriverFeeds();
+        renderStoreOrders();
+      }
+    }
+
+    function clearDriverPersonalOrders() {
+      if (!currentSessionUser) return;
+      orders = orders.filter(o => o.driverId !== currentSessionUser.id);
+      saveStateToLocalStorage();
+      renderDriverFeeds();
+      renderStoreOrders();
+      showToast('Monitor personal limpiado', 'info');
+    }
+
+    function renderDriverFeeds() {
+      const radarFeed = document.getElementById('driver-radar-feed');
+      const myOrdersFeed = document.getElementById('driver-my-orders-feed');
+      const countBadge = document.getElementById('driver-my-orders-count-badge');
+      const colleaguesFeed = document.getElementById('driver-colleagues-feed');
+
+      const pendingOrders = orders.filter(o => o.status === 'pending');
+      if (pendingOrders.length === 0) {
+        radarFeed.innerHTML = `
+          <div class="text-center py-8 text-zinc-600 border border-dashed border-zinc-800 rounded-2xl">
+            <i class="fa-solid fa-satellite text-2xl mb-2 text-zinc-700"></i>
+            <p class="text-xs">No hay pedidos disponibles en el radar.</p>
+          </div>
+        `;
+      } else {
+        radarFeed.innerHTML = pendingOrders.map(o => `
+          <div class="bg-black border border-zinc-800 hover:border-[#00f0ff]/50 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-xs text-[#00f0ff]">${o.id}</span>
+                <span class="text-xs font-bold text-white">${o.storeName}</span>
+              </div>
+              <div class="text-xs text-zinc-300"><i class="fa-solid fa-location-dot text-[#ff007f] mr-1"></i> ${o.destination}</div>
+              <div class="text-xs text-zinc-400">Demora: <span class="text-amber-400 font-bold">${o.delay}</span> • Cobrar: <span class="text-[#00ff87] font-bold">${o.paymentAmount}</span></div>
+            </div>
+            <button onclick="acceptOrder('${o.id}')" class="w-full sm:w-auto bg-[#00f0ff] hover:bg-cyan-400 active:scale-95 text-black font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 flex-shrink-0">
+              <i class="fa-solid fa-hand-holding-hand"></i> Tomar Pedido
+            </button>
+          </div>
+        `).join('');
+      }
+
+      const myAssigned = currentSessionUser ? orders.filter(o => o.driverId === currentSessionUser.id && o.status !== 'delivered') : [];
+      countBadge.innerText = myAssigned.length;
+
+      if (myAssigned.length === 0) {
+        myOrdersFeed.innerHTML = `
+          <div class="text-center py-8 text-zinc-600 border border-dashed border-zinc-800 rounded-2xl">
+            <i class="fa-solid fa-clipboard-check text-2xl mb-2 text-zinc-700"></i>
+            <p class="text-xs">No tienes entregas activas asignadas.</p>
+          </div>
+        `;
+      } else {
+        myOrdersFeed.innerHTML = myAssigned.map(o => `
+          <div class="bg-black border border-cyan-500/40 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-xs text-[#00f0ff]">${o.id}</span>
+                <span class="text-xs font-bold text-white">${o.storeName}</span>
+              </div>
+              <div class="text-xs text-zinc-300"><i class="fa-solid fa-location-dot text-[#ff007f] mr-1"></i> ${o.destination}</div>
+              <div class="text-xs text-zinc-400">Cliente: <span class="text-white font-bold">${o.clientName} (${o.clientPhone})</span></div>
+              <a href="${o.mapsLink}" target="_blank" class="inline-block text-[11px] text-[#00ff87] underline hover:text-emerald-300 pt-1">
+                <i class="fa-solid fa-map-location-dot mr-1"></i> Abrir Mapa GPS
+              </a>
+            </div>
+            <button onclick="markOrderDelivered('${o.id}')" class="w-full sm:w-auto bg-[#00ff87] hover:bg-emerald-400 active:scale-95 text-black font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 flex-shrink-0">
+              <i class="fa-solid fa-check"></i> Marcar Entregado
+            </button>
+          </div>
+        `).join('');
+      }
+
+      if (drivers.length === 0) {
+        colleaguesFeed.innerHTML = `<div class="text-xs text-zinc-600 text-center py-4 col-span-1 sm:col-span-2">No hay repartidores registrados.</div>`;
+      } else {
+        colleaguesFeed.innerHTML = drivers.map(d => `
+          <div class="bg-black border border-zinc-800 p-3 rounded-xl flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-950 text-[#00ff87] flex items-center justify-center text-xs font-bold">
+                <i class="fa-solid fa-motorcycle"></i>
+              </div>
+              <div>
+                <div class="text-xs font-bold text-white">${d.name}</div>
+                <div class="text-[10px] text-zinc-500">WA: ${d.phone}</div>
+              </div>
+            </div>
+            <span class="text-[10px] bg-emerald-950 text-[#00ff87] border border-emerald-800/60 px-2 py-0.5 rounded-full font-bold">En servicio</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function addNewStore(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-store-name').value.trim();
+      const pass = document.getElementById('new-store-pass').value.trim();
+
+      if (name && pass) {
+        stores.push({ id: 's' + Date.now(), name: name, pass: pass });
+        saveStateToLocalStorage();
+        document.getElementById('new-store-name').value = '';
+        document.getElementById('new-store-pass').value = '';
+        showToast(`Comercio ${name} registrado y guardado`, 'success');
+        renderAdminLists();
+      }
+    }
+
+    function addNewDriver(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-driver-name').value.trim();
+      const phone = document.getElementById('new-driver-phone').value.trim();
+      const pass = document.getElementById('new-driver-pass').value.trim();
+
+      if (name && phone && pass) {
+        drivers.push({ id: 'd' + Date.now(), name: name, phone: phone, pass: pass, active: true });
+        saveStateToLocalStorage();
+        document.getElementById('new-driver-name').value = '';
+        document.getElementById('new-driver-phone').value = '';
+        document.getElementById('new-driver-pass').value = '';
+        showToast(`Repartidor ${name} registrado y guardado`, 'success');
+        renderAdminLists();
+      }
+    }
+
+    function renderAdminLists() {
+      const storesContainer = document.getElementById('stores-list-container');
+      const driversContainer = document.getElementById('drivers-list-container');
+
+      if (stores.length === 0) {
+        storesContainer.innerHTML = `<div class="text-xs text-zinc-600 text-center py-2">No hay comercios registrados aún.</div>`;
+      } else {
+        storesContainer.innerHTML = stores.map(s => `
+          <div class="bg-zinc-900/60 border border-zinc-800 p-2.5 rounded-xl flex items-center justify-between text-xs">
+            <span class="font-bold text-white"><i class="fa-solid fa-store text-[#ff007f] mr-1.5"></i> ${s.name}</span>
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-zinc-500">Clave: ${s.pass}</span>
+              <button onclick="deleteStore('${s.id}')" class="text-rose-400 hover:text-rose-300 p-1" title="Borrar comercio">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      if (drivers.length === 0) {
+        driversContainer.innerHTML = `<div class="text-xs text-zinc-600 text-center py-2">No hay repartidores registrados aún.</div>`;
+      } else {
+        driversContainer.innerHTML = drivers.map(d => `
+          <div class="bg-zinc-900/60 border border-zinc-800 p-2.5 rounded-xl flex items-center justify-between text-xs">
+            <span class="font-bold text-white"><i class="fa-solid fa-motorcycle text-[#00f0ff] mr-1.5"></i> ${d.name} (${d.phone})</span>
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-zinc-500">PIN: ${d.pass}</span>
+              <button onclick="deleteDriver('${d.id}')" class="text-rose-400 hover:text-rose-300 p-1" title="Borrar repartidor">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function deleteStore(storeId) {
+      const storeToDelete = stores.find(s => s.id === storeId);
+      stores = stores.filter(s => s.id !== storeId);
+      saveStateToLocalStorage();
+      showToast(`Comercio ${storeToDelete ? storeToDelete.name : ''} eliminado`, 'info');
+      renderAdminLists();
+    }
+
+    function deleteDriver(driverId) {
+      const driverToDelete = drivers.find(d => d.id === driverId);
+      drivers = drivers.filter(d => d.id !== driverId);
+      saveStateToLocalStorage();
+      showToast(`Repartidor ${driverToDelete ? driverToDelete.name : ''} eliminado`, 'info');
+      renderAdminLists();
+    }
+
+    function saveTariffsFromAdmin() {
+      tariffs.tier1 = Number(document.getElementById('rate-0-3').value) || 3000;
+      tariffs.tier2 = Number(document.getElementById('rate-3-6').value) || 4500;
+      tariffs.tier3 = Number(document.getElementById('rate-6-9').value) || 6500;
+      saveStateToLocalStorage();
+      showToast('Tarifas de envío actualizadas', 'success');
+    }
+
+    function loadTariffsIntoInputs() {
+      if (document.getElementById('rate-0-3')) document.getElementById('rate-0-3').value = tariffs.tier1;
+      if (document.getElementById('rate-3-6')) document.getElementById('rate-3-6').value = tariffs.tier2;
+      if (document.getElementById('rate-6-9')) document.getElementById('rate-6-9').value = tariffs.tier3;
+    }
+
+    function refreshApplication() {
+      renderStoreOrders();
+      renderDriverFeeds();
+      showToast('Datos actualizados', 'info');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-emerald-950 border-emerald-500/50 text-[#00ff87]' : type === 'error' ? 'bg-rose-950 border-rose-500/50 text-rose-300' : 'bg-cyan-950 border-cyan-500/50 text-[#00f0ff]';
+      
+      toast.className = `${bgColor} border px-3.5 py-2.5 rounded-2xl text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 pointer-events-auto transition-all transform translate-y-2 opacity-0`;
+      toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i> <span>${message}</span>`;
+      
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function backToPortalFromAuth() {
+      document.getElementById('auth-modal').classList.add('hidden');
+      document.getElementById('auth-password-input').value = '';
+      document.getElementById('auth-error').classList.add('hidden');
+    }
+
+    window.onload = function() {
+      renderStoreOrders();
+      loadTariffsIntoInputs();
+    };
+  </script>
+</body>
+</html>
