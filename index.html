@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="es" class="dark h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Quick Box Cadetería & Logística</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          screens: {
+            'xs': '380px'
+          },
+          colors: {
+            brand: {
+              pink: '#ff007f',
+              cyan: '#00f0ff',
+              green: '#00ff87',
+              dark: '#000000',
+              card: '#0c0c0e',
+              border: '#1f1f23'
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      touch-action: manipulation;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      background-color: #000000;
+      color: #f4f4f6;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #000000;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ff007f;
+    }
+
+    .neon-border-pink {
+      border-color: #ff007f;
+      box-shadow: 0 0 25px rgba(255, 0, 127, 0.25);
+    }
+    
+    .neon-border-cyan {
+      border-color: #00f0ff;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.25);
+    }
+
+    /* Safe area padding for mobile notches */
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 1rem);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col justify-between bg-black text-zinc-100 min-h-screen selection:bg-[#ff007f] selection:text-white">
+
+  <!-- FULL BLACK PORTAL LANDING -->
+  <div id="landing-portal" class="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-3 sm:p-6 transition-all duration-500 overflow-y-auto">
+
+    <div class="max-w-md w-full bg-black rounded-3xl p-5 sm:p-8 shadow-2xl text-center space-y-6 border border-zinc-800 neon-border-pink relative overflow-hidden my-auto">
+      <!-- Decorative Accent Line -->
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#ff007f] via-[#00f0ff] to-[#00ff87]"></div>
+
+      <!-- Title & Subtitle -->
+      <div class="space-y-2 sm:space-y-3 pt-2 relative z-10">
+        <h1 class="text-3xl xs:text-4xl sm:text-5xl font-black font-sans tracking-tight text-white drop-shadow-lg">
+          QUICK<span class="text-[#ff007f]">BOX</span>
+        </h1>
+        <p class="text-[11px] xs:text-xs sm:text-sm font-bold text-white tracking-widest uppercase font-sans drop-shadow">
+          ¡No solo entregamos, cumplimos!
+        </p>
+        <p class="text-[10px] xs:text-[11px] sm:text-xs text-zinc-400 pt-1 font-sans leading-relaxed">
+          Seleccione su perfil de acceso para ingresar al sistema de cadetería en tiempo real.
+        </p>
+      </div>
+
+      <!-- Role Selection Buttons -->
+      <div class="space-y-2.5 sm:space-y-3 pt-2 relative z-10">
+        <button onclick="enterPortalAs('store')" class="w-full bg-[#ff007f] hover:bg-pink-600 active:scale-95 text-white font-bold py-3.5 px-4 rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-pink-500/25 transition-all flex items-center justify-center gap-3">
+          <i class="fa-solid fa-store text-base"></i> Ingresar como Comercio
+        </button>
+        <button onclick="enterPortalAs('driver')" class="w-full bg-[#00f0ff] hover:bg-cyan-400 active:scale-95 text-black font-bold py-3.5 px-4 rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center gap-3">
+          <i class="fa-solid fa-motorcycle text-base"></i> Ingresar como Repartidor
+        </button>
+        <button onclick="enterPortalAs('admin')" class="w-full bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-[#00ff87] border border-zinc-700 font-bold py-3 px-4 rounded-2xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-3">
+          <i class="fa-solid fa-shield-halved text-base"></i> Panel de Administración
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN APP HEADER -->
+  <header class="bg-black border-b border-zinc-900 sticky top-0 z-40 backdrop-blur-md bg-black/90">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-auto py-3 flex flex-row items-center justify-between gap-3">
+      
+      <div class="flex items-center gap-3 cursor-pointer" onclick="returnToPortal()">
+        <div class="flex items-center gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-lg xs:text-xl sm:text-2xl tracking-tight text-white font-mono">QUICK<span class="text-[#ff007f]">BOX</span></span>
+            </div>
+            <div class="text-[10px] sm:text-xs text-white font-bold tracking-wide font-mono hidden xs:block">
+              <span>¡No solo entregamos, cumplimos!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header actions area -->
+      <div class="flex items-center gap-2">
+        <button onclick="returnToPortal()" class="text-xs bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-zinc-300 px-3 py-2 rounded-xl border border-zinc-800 flex items-center gap-2 transition-all">
+          <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Cambiar Perfil</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- AUTHENTICATION MODAL -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-black border border-zinc-800 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative neon-border-pink">
+      <!-- Back Arrow Button -->
+      <div class="absolute top-4 left-4 flex items-center gap-2">
+        <button onclick="backToPortalFromAuth()" class="text-zinc-400 hover:text-white p-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+          <i class="fa-solid fa-arrow-left"></i> Volver
+        </button>
+      </div>
+
+      <div class="text-center mb-6 pt-4">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-pink-950/60 border border-pink-500/40 flex items-center justify-center text-[#ff007f] text-xl sm:text-2xl mb-3">
+          <i id="auth-icon" class="fa-solid fa-lock"></i>
+        </div>
+        <h3 id="auth-title" class="text-lg sm:text-xl font-black text-white font-mono">Ingreso de Seguridad</h3>
+        <p id="auth-subtitle" class="text-xs text-zinc-400 mt-1">Ingrese la clave correspondiente para continuar</p>
+      </div>
+
+      <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">Contraseña de Acceso</label>
+          <div class="relative">
+            <input type="password" id="auth-password-input" required autocomplete="off" placeholder="••••••••" class="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#ff007f] focus:ring-1 focus:ring-[#ff007f]">
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-3.5 text-zinc-500 hover:text-white">
+              <i id="pass-eye-icon" class="fa-solid fa-eye-slash"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="auth-error" class="hidden text-xs text-rose-400 bg-rose-950/40 border border-rose-800/60 p-2.5 rounded-xl text-center">
+          Contraseña incorrecta. Por favor reintente.
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-[#ff007f] to-purple-600 hover:from-pink-600 hover:to-purple-700 active:scale-95 text-white font-bold py-3 rounded-xl text-sm shadow-lg shadow-pink-500/25 transition-all">
+          Iniciar Sesión
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+
+    <!-- STORE VIEW -->
+    <section id="view-store" class="space-y-4 sm:space-y-6">
+      
+      <!-- Session Bar -->
+      <div class="bg-black border border-zinc-800 rounded-2xl p-3.5 sm:px-6 sm:py-4 flex flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3 w-full">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-pink-950/60 border border-pink-500/40 flex items-center justify-center text-[#ff007f] text-base sm:text-lg flex-shrink-0">
+            <i class="fa-solid fa-store"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="text-[10px] uppercase font-bold tracking-wider text-zinc-500">Comercio Conectado</div>
+            <div id="store-session-display-name" class="text-xs sm:text-sm font-black text-white truncate">Local Comercial</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        
+        <!-- DIRECT ORDER FORM -->
+        <div class="lg:col-span-5 bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
+            <h2 class="text-xs sm:text-base font-bold text-white flex items-center gap-2 font-mono">
+              <i class="fa-solid fa-box-open text-[#ff007f]"></i> EMITIR NUEVO ENVÍO
+            </h2>
+            <button type="button" onclick="clearOrderForm()" class="text-xs text-zinc-500 hover:text-rose-400 bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-800">
+              <i class="fa-solid fa-eraser"></i> Borrar
+            </button>
+          </div>
+
+          <form id="form-create-order" onsubmit="submitNewOrder(event)" class="space-y-3.5">
+            
+            <!-- Address Destination -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                <i class="fa-solid fa-flag-checkered text-[#ff007f] mr-1"></i> Dirección de Entrega (Destino)
+              </label>
+              <div class="flex gap-2">
+                <input type="text" id="order-destination" required placeholder="Ej: Calle Las Heras 890" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#ff007f]">
+                <button type="button" onclick="openGoogleMaps('order-destination')" class="bg-zinc-900 hover:bg-zinc-800 text-[#ff007f] px-3.5 py-2.5 rounded-xl border border-zinc-800 text-xs flex-shrink-0" title="Ver en Google Maps">
+                  <i class="fa-solid fa-map-location-dot"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Share Google Maps Pin / Location Link -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                <i class="fa-solid fa-share-nodes text-[#00ff87] mr-1"></i> Compartir Ubicación Google Maps
+              </label>
+              <input type="url" id="order-maps-link" placeholder="Pegar enlace o Pin (https://maps.app.goo.gl/...)" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00ff87]">
+            </div>
+
+            <!-- Client Contact & Phone -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Cliente Recibe</label>
+                <input type="text" id="order-client-name" required placeholder="Nombre..." class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-pink-500">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Celular Cliente</label>
+                <input type="tel" id="order-client-phone" required placeholder="261..." class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-pink-500">
+              </div>
+            </div>
+
+            <!-- Tariff Tier Selector -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                <i class="fa-solid fa-route text-[#00f0ff] mr-1"></i> Rango de Envío
+              </label>
+              <select id="order-tier-select" onchange="updateCalculatedTariff()" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-[#ff007f]">
+                <option value="tier1">0 a 3 km — $3.000</option>
+                <option value="tier2">3 a 6 km — $4.500</option>
+                <option value="tier3">6 a 9 km — $6.500</option>
+              </select>
+            </div>
+
+            <!-- Demora de Pedido / Preparación -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                <i class="fa-solid fa-clock text-amber-400 mr-1"></i> Demora de Pedido / Preparación
+              </label>
+              <select id="order-delay-select" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-400">
+                <option value="Listo para retirar">Listo para retirar</option>
+                <option value="5 minutos">5 minutos</option>
+                <option value="10 a 15 minutos">10 a 15 minutos</option>
+                <option value="15 a 30 minutos">15 a 30 minutos</option>
+                <option value="30 a 45 minutos">30 a 45 minutos</option>
+                <option value="45 a 60 minutos">45 a 60 minutos</option>
+              </select>
+            </div>
+
+            <!-- Payment Method Selector -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                  <i class="fa-solid fa-wallet text-[#00ff87] mr-1"></i> Método de Pago
+                </label>
+                <select id="order-payment-method" onchange="togglePaymentAmountField()" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-[#00ff87]">
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Transferencia (Mercado Pago / Bancaria)">Transferencia</option>
+                  <option value="Pagado">Pagado</option>
+                </select>
+              </div>
+              <div id="payment-amount-wrapper">
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                  <i class="fa-solid fa-money-bill-wave text-[#00ff87] mr-1"></i> Monto a Cobrar ($)
+                </label>
+                <input type="text" id="order-payment-amount" placeholder="Ej: $12.500" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00ff87]">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-[#ff007f] to-pink-600 hover:from-pink-600 hover:to-pink-700 active:scale-95 text-white font-bold py-3.5 rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-pink-500/25 transition-all">
+              <i class="fa-solid fa-paper-plane mr-1"></i> Solicitar Envío Ahora
+            </button>
+          </form>
+        </div>
+
+        <!-- LIVE ORDERS KANBAN -->
+        <div class="lg:col-span-7 bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex flex-row items-center justify-between border-b border-zinc-900 pb-3 gap-2">
+            <h2 class="text-xs sm:text-base font-bold text-white flex items-center gap-2 font-mono">
+              <i class="fa-solid fa-radar text-[#00f0ff]"></i> MONITOR DE PEDIDOS ACTIVOS
+            </h2>
+            <div class="flex items-center gap-2">
+              <span class="text-xs bg-zinc-900 text-zinc-400 px-2.5 py-1 rounded-full border border-zinc-800">
+                <span id="active-orders-count" class="text-[#00ff87] font-bold">0</span> <span class="hidden sm:inline">En Curso</span>
+              </span>
+              <button type="button" onclick="clearAllOrders()" class="text-xs text-rose-400 hover:text-white bg-rose-950/60 hover:bg-rose-900 px-2.5 py-1 rounded-xl border border-rose-800/60 flex items-center gap-1.5 transition-all" title="Borrar todo el monitor">
+                <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">Borrar Todo</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="store-orders-container" class="space-y-3 min-h-[200px] sm:min-h-[250px]">
+            <!-- Dynamic Order Cards -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- DRIVER VIEW -->
+    <section id="view-driver" class="hidden space-y-4 sm:space-y-6">
+      
+      <!-- Driver Header Info with Refresh Button Exclusively for Driver -->
+      <div class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-cyan-950/60 border border-cyan-500/40 flex items-center justify-center text-[#00f0ff] text-xl sm:text-2xl font-black flex-shrink-0">
+            <i class="fa-solid fa-motorcycle"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-sm sm:text-lg font-bold text-white flex items-center gap-2 flex-wrap">
+              <span id="driver-session-display-name" class="truncate">Repartidor Principal</span>
+              <span id="driver-duty-badge" class="text-[10px] sm:text-xs bg-emerald-950 text-[#00ff87] border border-emerald-800/60 px-2.5 py-0.5 rounded-full font-semibold">Online</span>
+            </h2>
+            <div class="text-[11px] sm:text-xs text-zinc-400">Repartidor Oficial • WA: <span id="driver-session-phone" class="text-white">261 000-0000</span></div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <!-- Refresh Button (Only Icon) -->
+          <button onclick="refreshApplication()" class="bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-[#00f0ff] border border-zinc-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center transition-all shrink-0" title="Actualizar Datos">
+            <i class="fa-solid fa-rotate text-base"></i>
+          </button>
+          <button onclick="toggleDriverDuty()" id="btn-driver-duty" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold bg-[#00ff87]/20 text-[#00ff87] border border-[#00ff87]/40 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-circle text-[8px]"></i> <span class="whitespace-nowrap">En Servicio</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Driver Tabs (Radar vs My Orders Monitor) -->
+      <div class="flex border-b border-zinc-800 gap-1 sm:gap-2 overflow-x-auto pb-1">
+        <button onclick="switchDriverTab('radar')" id="driver-tab-radar" class="px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#00f0ff] border-b-2 border-[#00f0ff] flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-satellite-dish"></i> Radar
+        </button>
+        <button onclick="switchDriverTab('my-orders')" id="driver-tab-my-orders" class="px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-box-archive"></i> Mi Monitor <span id="driver-my-orders-count-badge" class="bg-zinc-800 text-white px-2 py-0.5 rounded-full text-[10px]">0</span>
+        </button>
+        <button onclick="switchDriverTab('colleagues')" id="driver-tab-colleagues" class="px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-users"></i> Compañeros
+        </button>
+      </div>
+
+      <!-- Radar View Content -->
+      <div id="driver-view-radar" class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+        <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
+          <i class="fa-solid fa-satellite-dish text-[#ff007f]"></i> RADAR DE SOLICITUDES DISPONIBLES
+        </h3>
+
+        <div id="driver-radar-feed" class="space-y-3">
+          <!-- Dynamic Requests -->
+        </div>
+      </div>
+
+      <!-- Personal Driver Monitor View Content -->
+      <div id="driver-view-my-orders" class="hidden bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+        <div class="flex flex-row items-center justify-between border-b border-zinc-900 pb-3 gap-2">
+          <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
+            <i class="fa-solid fa-box-archive text-[#00f0ff]"></i> MIS PEDIDOS ASIGNADOS
+          </h3>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="clearDriverPersonalOrders()" class="text-xs text-rose-400 hover:text-white bg-rose-950/60 hover:bg-rose-900 px-2.5 py-1 rounded-xl border border-rose-800/60 flex items-center gap-1.5 transition-all" title="Limpiar tu monitor personal">
+              <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">Borrar Todo</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="driver-my-orders-feed" class="space-y-3">
+          <!-- Dynamic Assigned Orders -->
+        </div>
+      </div>
+
+      <!-- Colleagues Active View Content -->
+      <div id="driver-view-colleagues" class="hidden bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
+          <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
+            <i class="fa-solid fa-users text-[#00ff87]"></i> COMPAÑEROS ACTIVOS
+          </h3>
+          <span class="text-[10px] sm:text-xs bg-emerald-950/60 text-[#00ff87] px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-bold">
+            En línea
+          </span>
+        </div>
+
+        <div id="driver-colleagues-feed" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Dynamic colleagues list -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN VIEW -->
+    <section id="view-admin" class="hidden space-y-4 sm:space-y-6">
+
+      <!-- Manage Stores & Drivers Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        
+        <!-- Add / Manage Local (Store) -->
+        <div class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
+            <h3 class="text-xs sm:text-sm font-bold text-white font-mono flex items-center gap-2">
+              <i class="fa-solid fa-store text-[#ff007f]"></i> GESTIÓN DE LOCALES / COMERCIOS
+            </h3>
+            <span class="text-[10px] bg-pink-950/60 text-[#ff007f] px-2 py-0.5 rounded border border-pink-500/30 font-bold">Nuevo</span>
+          </div>
+
+          <form onsubmit="addNewStore(event)" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">Nombre Local</label>
+                <input type="text" id="new-store-name" required placeholder="Ej: Burger House" class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">Contraseña</label>
+                <input type="password" id="new-store-pass" required placeholder="Clave acceso..." class="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white">
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-[#ff007f] hover:bg-pink-600 active:scale-95 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-lg shadow-pink-500/20">
+              <i class="fa-solid fa-plus mr-1"></i> Registrar Nuevo Local
+            </button>
+          </form>
+
+          <div class="pt-2">
+            <div class="text-xs font-bold text-zinc-400 mb-2">Locales Registrados:</div>
+            <div id="stores-list-container" class="space-y-2 max-h-36 overflow-y-auto">
+              <!-- Dynamic stores list -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Add / Manage Drivers -->
+        <div class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
+            <h3 class="text-xs sm:text-sm font-bold text-white font-mono flex items-center gap-2">
+              <i class="fa-solid fa-motorcycle text-[#00f0ff]"></i> GESTIÓN DE REPARTIDORES
+            </h3>
+            <span class="text-[10px] bg-cyan-950/60 text-[#00f0ff] px-2 py-0.5 rounded border border-cyan-500/30 font-bold">Nuevo</span>
+          </div>
+
+          <form onsubmit="addNewDriver(event)" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">Nombre</label>
+                <input type="text" id="new-driver-name" required placeholder="Ej: Marcos Pérez" class="w-full bg-black border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">WhatsApp</label>
+                <input type="tel" id="new-driver-phone" required placeholder="261..." class="w-full bg-black border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-zinc-400 mb-1">PIN Acceso</label>
+                <input type="password" id="new-driver-pass" required placeholder="PIN..." class="w-full bg-black border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white">
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-[#00f0ff] hover:bg-cyan-500 active:scale-95 text-black font-bold py-2.5 rounded-xl text-xs transition-all shadow-lg shadow-cyan-500/20">
+              <i class="fa-solid fa-user-plus mr-1"></i> Registrar Repartidor
+            </button>
+          </form>
+
+          <div class="pt-2">
+            <div class="text-xs font-bold text-zinc-400 mb-2">Repartidores Registrados:</div>
+            <div id="drivers-list-container" class="space-y-2 max-h-36 overflow-y-auto">
+              <!-- Dynamic drivers list -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Config Tariff Rates Panel -->
+      <div class="bg-black border border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4">
+        <h3 class="text-xs sm:text-base font-bold text-white font-mono flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-[#00ff87]"></i> CONFIGURACIÓN DE TARIFAS DE ENVÍO
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div class="bg-black border border-zinc-800 p-3.5 rounded-2xl">
+            <div class="text-[11px] font-bold text-zinc-400 mb-1">Rango 0 a 3 km</div>
+            <div class="flex items-center gap-2">
+              <span class="text-zinc-500 text-xs">$</span>
+              <input type="number" id="rate-0-3" value="3000" onchange="saveTariffsFromAdmin()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs font-bold text-[#00ff87]">
+            </div>
+          </div>
+          <div class="bg-black border border-zinc-800 p-3.5 rounded-2xl">
+            <div class="text-[11px] font-bold text-zinc-400 mb-1">Rango 3 a 6 km</div>
+            <div class="flex items-center gap-2">
+              <span class="text-zinc-500 text-xs">$</span>
+              <input type="number" id="rate-3-6" value="4500" onchange="saveTariffsFromAdmin()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs font-bold text-[#00ff87]">
+            </div>
+          </div>
+          <div class="bg-black border border-zinc-800 p-3.5 rounded-2xl">
+            <div class="text-[11px] font-bold text-zinc-400 mb-1">Rango 6 a 9 km</div>
+            <div class="flex items-center gap-2">
+              <span class="text-zinc-500 text-xs">$</span>
+              <input type="number" id="rate-6-9" value="6500" onchange="saveTariffsFromAdmin()" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs font-bold text-[#00ff87]">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-black border-t border-zinc-900 py-4 mt-6 text-center text-xs text-zinc-600 pb-safe">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div>
+        Quick Box Delivery &copy; 2026 • Sistema de Cadetería en Tiempo Real
+        <div class="text-[#00f0ff] font-bold text-[11px] mt-0.5">APLICACIÓN CREADA POR ANDRÉS LEÓN</div>
+      </div>
+      <div class="flex items-center gap-3 text-zinc-500">
+        <span class="text-[#00ff87] text-[11px]"><i class="fa-solid fa-circle text-[8px]"></i> Servidor Activo</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-[90vw] sm:max-w-md"></div>
+
+  <script>
+    // System State Variables
+    let currentRole = null;
+    let pendingRole = null;
+    let currentDriverTab = 'radar';
+    let driverDutyStatus = true;
+
+    let tariffs = {
+      tier1: 3000,
+      tier2: 4500,
+      tier3: 6500
+    };
+
+    // Starts empty from scratch
+    let stores = [];
+    let drivers = [];
+
+    let currentSessionUser = null;
+
+    // Monitor starts empty (0 active orders)
+    let orders = [];
+
+    // Web Audio Synthesizer for Driver Order Alert (Meep-Meep / Roadrunner Tone)
+    function playDriverBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+
+        const notes = [
+          { freq: 880, duration: 0.08, delay: 0 },
+          { freq: 1318.51, duration: 0.12, delay: 0.1 }
+        ];
+
+        notes.forEach(note => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(note.freq, ctx.currentTime + note.delay);
+
+          gain.gain.setValueAtTime(0.25, ctx.currentTime + note.delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + note.delay + note.duration);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(ctx.currentTime + note.delay);
+          osc.stop(ctx.currentTime + note.delay + note.duration);
+        });
+      } catch (e) {
+        console.warn('Audio feedback restricted:', e);
+      }
+    }
+
+    function enterPortalAs(role) {
+      pendingRole = role;
+      const modal = document.getElementById('auth-modal');
+      const title = document.getElementById('auth-title');
+      const subtitle = document.getElementById('auth-subtitle');
+      const icon = document.getElementById('auth-icon');
+      const passInput = document.getElementById('auth-password-input');
+      const eyeIcon = document.getElementById('pass-eye-icon');
+
+      // Always reset password input to type="password" on open to mask input characters
+      passInput.value = '';
+      passInput.type = 'password';
+      if (eyeIcon) eyeIcon.className = 'fa-solid fa-eye-slash';
+
+      document.getElementById('auth-error').classList.add('hidden');
+
+      if (role === 'admin') {
+        title.innerText = 'Acceso Administración';
+        subtitle.innerText = 'Ingrese clave de administrador';
+        icon.className = 'fa-solid fa-shield-halved';
+      } else if (role === 'store') {
+        title.innerText = 'Acceso Comercios';
+        subtitle.innerText = 'Ingrese su clave de local registrado';
+        icon.className = 'fa-solid fa-store';
+      } else if (role === 'driver') {
+        title.innerText = 'Acceso Repartidores';
+        subtitle.innerText = 'Ingrese su PIN de cadete activo';
+        icon.className = 'fa-solid fa-motorcycle';
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function togglePasswordVisibility() {
+      const input = document.getElementById('auth-password-input');
+      const eye = document.getElementById('pass-eye-icon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        eye.className = 'fa-solid fa-eye';
+      } else {
+        input.type = 'password';
+        eye.className = 'fa-solid fa-eye-slash';
+      }
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const pass = document.getElementById('auth-password-input').value.trim();
+      const errorMsg = document.getElementById('auth-error');
+
+      if (pendingRole === 'admin') {
+        if (pass === 'bsl22') {
+          currentRole = 'admin';
+          currentSessionUser = { name: 'Administrador General' };
+          showView('view-admin');
+          document.getElementById('auth-modal').classList.add('hidden');
+          document.getElementById('landing-portal').classList.add('hidden');
+          showToast('Bienvenido Administrador', 'success');
+          renderAdminLists();
+        } else {
+          errorMsg.innerText = 'Contraseña de admin incorrecta';
+          errorMsg.classList.remove('hidden');
+        }
+      } else if (pendingRole === 'store') {
+        const foundStore = stores.find(s => s.pass === pass);
+        if (foundStore) {
+          currentRole = 'store';
+          currentSessionUser = foundStore;
+          document.getElementById('store-session-display-name').innerText = foundStore.name;
+          showView('view-store');
+          document.getElementById('auth-modal').classList.add('hidden');
+          document.getElementById('landing-portal').classList.add('hidden');
+          showToast(`Conectado como ${foundStore.name}`, 'success');
+          renderStoreOrders();
+        } else {
+          errorMsg.innerText = 'Clave de comercio no registrada';
+          errorMsg.classList.remove('hidden');
+        }
+      } else if (pendingRole === 'driver') {
+        const foundDriver = drivers.find(d => d.pass === pass);
+        if (foundDriver) {
+          currentRole = 'driver';
+          currentSessionUser = foundDriver;
+          document.getElementById('driver-session-display-name').innerText = foundDriver.name;
+          document.getElementById('driver-session-phone').innerText = foundDriver.phone;
+          showView('view-driver');
+          document.getElementById('auth-modal').classList.add('hidden');
+          document.getElementById('landing-portal').classList.add('hidden');
+          showToast(`Hola ${foundDriver.name}, estás en línea`, 'success');
+          renderDriverFeeds();
+        } else {
+          errorMsg.innerText = 'PIN de repartidor incorrecto';
+          errorMsg.classList.remove('hidden');
+        }
+      }
+    }
+
+    function returnToPortal() {
+      currentRole = null;
+      currentSessionUser = null;
+      document.getElementById('landing-portal').classList.remove('hidden');
+    }
+
+    function showView(viewId) {
+      document.getElementById('view-store').classList.add('hidden');
+      document.getElementById('view-driver').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+      document.getElementById(viewId).classList.remove('hidden');
+    }
+
+    function togglePaymentAmountField() {
+      const method = document.getElementById('order-payment-method').value;
+      const wrapper = document.getElementById('payment-amount-wrapper');
+      if (method === 'Pagado') {
+        wrapper.classList.add('hidden');
+      } else {
+        wrapper.classList.remove('hidden');
+      }
+    }
+
+    function updateCalculatedTariff() {
+      const tier = document.getElementById('order-tier-select').value;
+      return tariffs[tier] || 3000;
+    }
+
+    function submitNewOrder(e) {
+      e.preventDefault();
+      const dest = document.getElementById('order-destination').value.trim();
+      const mapsLink = document.getElementById('order-maps-link').value.trim();
+      const clientName = document.getElementById('order-client-name').value.trim();
+      const clientPhone = document.getElementById('order-client-phone').value.trim();
+      const tier = document.getElementById('order-tier-select').value;
+      const delay = document.getElementById('order-delay-select').value;
+      const paymentMethod = document.getElementById('order-payment-method').value;
+      const paymentAmount = document.getElementById('order-payment-amount').value.trim();
+
+      const newOrder = {
+        id: 'QB-' + Math.floor(100 + Math.random() * 900),
+        storeId: currentSessionUser ? currentSessionUser.id : 's1',
+        storeName: currentSessionUser ? currentSessionUser.name : 'Local Comercial',
+        destination: dest,
+        mapsLink: mapsLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest)}`,
+        clientName: clientName,
+        clientPhone: clientPhone,
+        tier: tier,
+        tariff: tariffs[tier] || 3000,
+        delay: delay,
+        paymentMethod: paymentMethod,
+        paymentAmount: paymentMethod === 'Pagado' ? 'PAGADO' : (paymentAmount || '$0'),
+        status: 'pending',
+        driverId: null,
+        driverName: null,
+        createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      orders.unshift(newOrder);
+
+      // Trigger tone notification exclusively for active drivers
+      playDriverBeep();
+
+      showToast(`¡Nuevo pedido en camino! (${newOrder.id})`, 'success');
+      clearOrderForm();
+      renderStoreOrders();
+      renderDriverFeeds();
+    }
+
+    function clearOrderForm() {
+      document.getElementById('form-create-order').reset();
+      togglePaymentAmountField();
+    }
+
+    function openGoogleMaps(inputId) {
+      const val = document.getElementById(inputId).value;
+      if (val) {
+        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(val)}`, '_blank');
+      } else {
+        showToast('Ingrese una dirección primero', 'info');
+      }
+    }
+
+    function renderStoreOrders() {
+      const container = document.getElementById('store-orders-container');
+      const activeCount = document.getElementById('active-orders-count');
+      
+      const storeOrders = currentSessionUser ? orders.filter(o => o.storeId === currentSessionUser.id) : orders;
+      activeCount.innerText = storeOrders.filter(o => o.status !== 'delivered').length;
+
+      if (storeOrders.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 sm:py-10 text-zinc-600 border border-dashed border-zinc-800 rounded-2xl">
+            <i class="fa-solid fa-box-open text-xl sm:text-2xl mb-2 text-zinc-700"></i>
+            <p class="text-xs font-bold">No hay pedidos emitidos aún.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = storeOrders.map(order => `
+        <div class="bg-black border ${order.status === 'pending' ? 'border-amber-500/40' : order.status === 'assigned' ? 'border-cyan-500/40' : 'border-emerald-500/40'} p-3.5 sm:p-4 rounded-2xl space-y-2.5 relative">
+          <div class="flex items-center justify-between border-b border-zinc-900 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-bold text-xs text-[#ff007f]">${order.id}</span>
+              <span class="text-[10px] text-zinc-500">${order.createdAt}</span>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${order.status === 'pending' ? 'bg-amber-950 text-amber-400 border border-amber-800/50' : order.status === 'assigned' ? 'bg-cyan-950 text-[#00f0ff] border border-cyan-800/50' : 'bg-emerald-950 text-[#00ff87] border border-emerald-800/50'}">
+              ${order.status === 'pending' ? 'Buscando Repartidor' : order.status === 'assigned' ? `Cadete: ${order.driverName}` : 'Entregado'}
+            </span>
+          </div>
+
+          <div class="space-y-1 text-xs">
+            <div class="text-white font-bold"><i class="fa-solid fa-location-dot text-[#ff007f] mr-1"></i> ${order.destination}</div>
+            <div class="text-zinc-400"><i class="fa-solid fa-user text-zinc-500 mr-1"></i> ${order.clientName} (${order.clientPhone})</div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-zinc-400"><i class="fa-solid fa-clock text-amber-400 mr-1"></i> ${order.delay}</span>
+              <span class="font-bold text-[#00ff87]">${order.paymentMethod}: ${order.paymentAmount}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function clearAllOrders() {
+      orders = [];
+      renderStoreOrders();
+      renderDriverFeeds();
+      showToast('Todos los pedidos eliminados', 'info');
+    }
+
+    function switchDriverTab(tab) {
+      currentDriverTab = tab;
+      document.getElementById('driver-tab-radar').className = tab === 'radar' ? 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#00f0ff] border-b-2 border-[#00f0ff] flex items-center gap-1.5 whitespace-nowrap' : 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap';
+      document.getElementById('driver-tab-my-orders').className = tab === 'my-orders' ? 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#00f0ff] border-b-2 border-[#00f0ff] flex items-center gap-1.5 whitespace-nowrap' : 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap';
+      document.getElementById('driver-tab-colleagues').className = tab === 'colleagues' ? 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#00f0ff] border-b-2 border-[#00f0ff] flex items-center gap-1.5 whitespace-nowrap' : 'px-3 sm:px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border-b-2 border-transparent flex items-center gap-1.5 whitespace-nowrap';
+
+      document.getElementById('driver-view-radar').classList.toggle('hidden', tab !== 'radar');
+      document.getElementById('driver-view-my-orders').classList.toggle('hidden', tab !== 'my-orders');
+      document.getElementById('driver-view-colleagues').classList.toggle('hidden', tab !== 'colleagues');
+
+      renderDriverFeeds();
+    }
+
+    function toggleDriverDuty() {
+      driverDutyStatus = !driverDutyStatus;
+      const badge = document.getElementById('driver-duty-badge');
+      const btn = document.getElementById('btn-driver-duty');
+      if (driverDutyStatus) {
+        badge.innerText = 'Online';
+        badge.className = 'text-[10px] sm:text-xs bg-emerald-950 text-[#00ff87] border border-emerald-800/60 px-2.5 py-0.5 rounded-full font-semibold';
+        btn.innerHTML = '<i class="fa-solid fa-circle text-[8px]"></i> <span class="whitespace-nowrap">En Servicio</span>';
+        btn.className = 'flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold bg-[#00ff87]/20 text-[#00ff87] border border-[#00ff87]/40 flex items-center justify-center gap-2';
+        showToast('Estás en línea para recibir pedidos', 'success');
+      } else {
+        badge.innerText = 'Offline';
+        badge.className = 'text-[10px] sm:text-xs bg-rose-950 text-rose-400 border border-rose-800/60 px-2.5 py-0.5 rounded-full font-semibold';
+        btn.innerHTML = '<i class="fa-solid fa-circle text-[8px]"></i> <span class="whitespace-nowrap">Fuera de Servicio</span>';
+        btn.className = 'flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40 flex items-center justify-center gap-2';
+        showToast('Te has puesto fuera de servicio', 'info');
+      }
+    }
+
+    function acceptOrder(orderId) {
+      if (!currentSessionUser) return;
+      const order = orders.find(o => o.id === orderId);
+      if (order && order.status === 'pending') {
+        order.status = 'assigned';
+        order.driverId = currentSessionUser.id;
+        order.driverName = currentSessionUser.name;
+        showToast(`Pedido ${order.id} asignado a tu monitor`, 'success');
+        renderDriverFeeds();
+        renderStoreOrders();
+      }
+    }
+
+    function markOrderDelivered(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        order.status = 'delivered';
+        showToast(`Pedido ${order.id} finalizado`, 'success');
+        renderDriverFeeds();
+        renderStoreOrders();
+      }
+    }
+
+    function clearDriverPersonalOrders() {
+      if (!currentSessionUser) return;
+      orders = orders.filter(o => o.driverId !== currentSessionUser.id);
+      renderDriverFeeds();
+      renderStoreOrders();
+      showToast('Monitor personal limpiado', 'info');
+    }
+
+    function renderDriverFeeds() {
+      const radarFeed = document.getElementById('driver-radar-feed');
+      const myOrdersFeed = document.getElementById('driver-my-orders-feed');
+      const countBadge = document.getElementById('driver-my-orders-count-badge');
+      const colleaguesFeed = document.getElementById('driver-colleagues-feed');
+
+      // 1. Radar Feed
+      const pendingOrders = orders.filter(o => o.status === 'pending');
+      if (pendingOrders.length === 0) {
+        radarFeed.innerHTML = `
+          <div class="text-center py-8 text-zinc-600 border border-dashed border-zinc-800 rounded-2xl">
+            <i class="fa-solid fa-satellite text-2xl mb-2 text-zinc-700"></i>
+            <p class="text-xs">No hay pedidos disponibles en el radar.</p>
+          </div>
+        `;
+      } else {
+        radarFeed.innerHTML = pendingOrders.map(o => `
+          <div class="bg-black border border-zinc-800 hover:border-[#00f0ff]/50 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-xs text-[#00f0ff]">${o.id}</span>
+                <span class="text-xs font-bold text-white">${o.storeName}</span>
+              </div>
+              <div class="text-xs text-zinc-300"><i class="fa-solid fa-location-dot text-[#ff007f] mr-1"></i> ${o.destination}</div>
+              <div class="text-xs text-zinc-400">Demora: <span class="text-amber-400 font-bold">${o.delay}</span> • Cobrar: <span class="text-[#00ff87] font-bold">${o.paymentAmount}</span></div>
+            </div>
+            <button onclick="acceptOrder('${o.id}')" class="w-full sm:w-auto bg-[#00f0ff] hover:bg-cyan-400 active:scale-95 text-black font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 flex-shrink-0">
+              <i class="fa-solid fa-hand-holding-hand"></i> Tomar Pedido
+            </button>
+          </div>
+        `).join('');
+      }
+
+      // 2. Personal Monitor
+      const myAssigned = currentSessionUser ? orders.filter(o => o.driverId === currentSessionUser.id && o.status !== 'delivered') : [];
+      countBadge.innerText = myAssigned.length;
+
+      if (myAssigned.length === 0) {
+        myOrdersFeed.innerHTML = `
+          <div class="text-center py-8 text-zinc-600 border border-dashed border-zinc-800 rounded-2xl">
+            <i class="fa-solid fa-clipboard-check text-2xl mb-2 text-zinc-700"></i>
+            <p class="text-xs">No tienes entregas activas asignadas.</p>
+          </div>
+        `;
+      } else {
+        myOrdersFeed.innerHTML = myAssigned.map(o => `
+          <div class="bg-black border border-cyan-500/40 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-xs text-[#00f0ff]">${o.id}</span>
+                <span class="text-xs font-bold text-white">${o.storeName}</span>
+              </div>
+              <div class="text-xs text-zinc-300"><i class="fa-solid fa-location-dot text-[#ff007f] mr-1"></i> ${o.destination}</div>
+              <div class="text-xs text-zinc-400">Cliente: <span class="text-white font-bold">${o.clientName} (${o.clientPhone})</span></div>
+              <a href="${o.mapsLink}" target="_blank" class="inline-block text-[11px] text-[#00ff87] underline hover:text-emerald-300 pt-1">
+                <i class="fa-solid fa-map-location-dot mr-1"></i> Abrir Mapa GPS
+              </a>
+            </div>
+            <button onclick="markOrderDelivered('${o.id}')" class="w-full sm:w-auto bg-[#00ff87] hover:bg-emerald-400 active:scale-95 text-black font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 flex-shrink-0">
+              <i class="fa-solid fa-check"></i> Marcar Entregado
+            </button>
+          </div>
+        `).join('');
+      }
+
+      // 3. Active Colleagues
+      if (drivers.length === 0) {
+        colleaguesFeed.innerHTML = `<div class="text-xs text-zinc-600 text-center py-4 col-span-1 sm:col-span-2">No hay repartidores registrados.</div>`;
+      } else {
+        colleaguesFeed.innerHTML = drivers.map(d => `
+          <div class="bg-black border border-zinc-800 p-3 rounded-xl flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-950 text-[#00ff87] flex items-center justify-center text-xs font-bold">
+                <i class="fa-solid fa-motorcycle"></i>
+              </div>
+              <div>
+                <div class="text-xs font-bold text-white">${d.name}</div>
+                <div class="text-[10px] text-zinc-500">WA: ${d.phone}</div>
+              </div>
+            </div>
+            <span class="text-[10px] bg-emerald-950 text-[#00ff87] border border-emerald-800/60 px-2 py-0.5 rounded-full font-bold">
+              En servicio
+            </span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function addNewStore(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-store-name').value.trim();
+      const pass = document.getElementById('new-store-pass').value.trim();
+
+      if (name && pass) {
+        stores.push({ id: 's' + (stores.length + 1), name: name, pass: pass });
+        document.getElementById('new-store-name').value = '';
+        document.getElementById('new-store-pass').value = '';
+        showToast(`Comercio ${name} registrado`, 'success');
+        renderAdminLists();
+      }
+    }
+
+    function addNewDriver(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-driver-name').value.trim();
+      const phone = document.getElementById('new-driver-phone').value.trim();
+      const pass = document.getElementById('new-driver-pass').value.trim();
+
+      if (name && phone && pass) {
+        drivers.push({ id: 'd' + (drivers.length + 1), name: name, phone: phone, pass: pass, active: true });
+        document.getElementById('new-driver-name').value = '';
+        document.getElementById('new-driver-phone').value = '';
+        document.getElementById('new-driver-pass').value = '';
+        showToast(`Repartidor ${name} registrado`, 'success');
+        renderAdminLists();
+      }
+    }
+
+    function renderAdminLists() {
+      const storesContainer = document.getElementById('stores-list-container');
+      const driversContainer = document.getElementById('drivers-list-container');
+
+      if (stores.length === 0) {
+        storesContainer.innerHTML = `<div class="text-xs text-zinc-600 text-center py-2">No hay comercios registrados aún.</div>`;
+      } else {
+        storesContainer.innerHTML = stores.map(s => `
+          <div class="bg-zinc-900/60 border border-zinc-800 p-2.5 rounded-xl flex items-center justify-between text-xs">
+            <span class="font-bold text-white"><i class="fa-solid fa-store text-[#ff007f] mr-1.5"></i> ${s.name}</span>
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-zinc-500">Clave: ${s.pass}</span>
+              <button onclick="deleteStore('${s.id}')" class="text-rose-400 hover:text-rose-300 p-1" title="Borrar comercio">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      if (drivers.length === 0) {
+        driversContainer.innerHTML = `<div class="text-xs text-zinc-600 text-center py-2">No hay repartidores registrados aún.</div>`;
+      } else {
+        driversContainer.innerHTML = drivers.map(d => `
+          <div class="bg-zinc-900/60 border border-zinc-800 p-2.5 rounded-xl flex items-center justify-between text-xs">
+            <span class="font-bold text-white"><i class="fa-solid fa-motorcycle text-[#00f0ff] mr-1.5"></i> ${d.name} (${d.phone})</span>
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-zinc-500">PIN: ${d.pass}</span>
+              <button onclick="deleteDriver('${d.id}')" class="text-rose-400 hover:text-rose-300 p-1" title="Borrar repartidor">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function deleteStore(storeId) {
+      const storeToDelete = stores.find(s => s.id === storeId);
+      stores = stores.filter(s => s.id !== storeId);
+      showToast(`Comercio ${storeToDelete ? storeToDelete.name : ''} eliminado`, 'info');
+      renderAdminLists();
+    }
+
+    function deleteDriver(driverId) {
+      const driverToDelete = drivers.find(d => d.id === driverId);
+      drivers = drivers.filter(d => d.id !== driverId);
+      showToast(`Repartidor ${driverToDelete ? driverToDelete.name : ''} eliminado`, 'info');
+      renderAdminLists();
+    }
+
+    function saveTariffsFromAdmin() {
+      tariffs.tier1 = Number(document.getElementById('rate-0-3').value) || 3000;
+      tariffs.tier2 = Number(document.getElementById('rate-3-6').value) || 4500;
+      tariffs.tier3 = Number(document.getElementById('rate-6-9').value) || 6500;
+      showToast('Tarifas de envío actualizadas', 'success');
+    }
+
+    function refreshApplication() {
+      renderStoreOrders();
+      renderDriverFeeds();
+      showToast('Datos actualizados', 'info');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const bgColor = type === 'success' ? 'bg-emerald-950 border-emerald-500/50 text-[#00ff87]' : type === 'error' ? 'bg-rose-950 border-rose-500/50 text-rose-300' : 'bg-cyan-950 border-cyan-500/50 text-[#00f0ff]';
+      
+      toast.className = `${bgColor} border px-3.5 py-2.5 rounded-2xl text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 pointer-events-auto transition-all transform translate-y-2 opacity-0`;
+      toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i> <span>${message}</span>`;
+      
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function backToPortalFromAuth() {
+      document.getElementById('auth-modal').classList.add('hidden');
+      document.getElementById('auth-password-input').value = '';
+      document.getElementById('auth-error').classList.add('hidden');
+    }
+
+    window.onload = function() {
+      renderStoreOrders();
+    };
+  </script>
+</body>
+</html>
